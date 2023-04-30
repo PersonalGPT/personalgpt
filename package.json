@@ -1,0 +1,31 @@
+{
+  "private": true,
+  "name": "bettergpt-ui",
+  "description": "A feature-rich alternative to ChatGPT's UI, with better UX",
+  "version": "0.1.0",
+  "author": "Ricky Chon <rickychon99@gmail.com>",
+  "main": "app/background.js",
+  "scripts": {
+    "dev": "nextron",
+    "build": "nextron build",
+    "postinstall": "electron-builder install-app-deps"
+  },
+  "dependencies": {
+    "electron-serve": "^1.1.0",
+    "electron-store": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "@types/react": "^18.0.26",
+    "autoprefixer": "^10.4.7",
+    "electron": "^21.3.3",
+    "electron-builder": "^23.6.0",
+    "next": "^12.3.4",
+    "nextron": "^8.5.0",
+    "postcss": "^8.4.13",
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tailwindcss": "^3.1.8",
+    "typescript": "^4.9.4"
+  }
+}

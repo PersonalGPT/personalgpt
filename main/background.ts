@@ -1,6 +1,7 @@
 import { app } from 'electron';
 import serve from 'electron-serve';
 import { createWindow } from './helpers';
+import * as dotenv from 'dotenv';
 
 const isProd: boolean = process.env.NODE_ENV === 'production';
 
@@ -12,6 +13,7 @@ if (isProd) {
 
 (async () => {
   await app.whenReady();
+  dotenv.config();
 
   const mainWindow = createWindow('main', {
     width: 1000,

@@ -1,31 +1,68 @@
 import React from 'react';
 import Head from 'next/head';
-import { Configuration, OpenAIApi } from "openai";
-
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_KEY,
-});
-const openai = new OpenAIApi(configuration);
 
 export default function Home() {
   const [conversation, setConversation] = React.useState([]);
   const [prompt, setPrompt] = React.useState("");
   const [isInputDisabled, setInputDisabled] = React.useState(false);
+  const [streamData, setStreamData] = React.useState("");
   const scrollRef = React.useRef(null);
 
+  React.useEffect(() => {
+    if (streamData.length > 0) {
+      const replaced = conversation;
+
+      replaced[replaced.length - 1] = {
+        type: "response",
+        message: streamData,
+      };
+      setConversation(replaced);
+    }
+  }, [streamData]);
+
+  const parseDataStream = (data) => {
+    if (!data) return;
+
+    const lines = data.split("\n\n")
+      .filter((line) => line.length > 0 && !line.includes("[DONE]"));
+
+    for (const line of lines) {
+      const clean = line.replace("data: ", "");
+      const json = JSON.parse(clean);
+
+      const token = json.choices[0].delta.content;
+
+      if (token) {
+        setStreamData(prevData => prevData + token);
+      };
+    }
+  };
+
   const sendRequest = async () => {
-    const completion = await openai.createChatCompletion({
-      model: "gpt-3.5-turbo",
-      messages: [{ role: "user", content: prompt }],
+    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [{ role: "user", content: prompt }],
+        stream: true,
+      }),
     });
 
-    const response = completion.data.choices[0].message.content;
-    const replacedConvos = conversation;
-    replacedConvos[replacedConvos.length - 1] = {
-      type: "response", message: response
-    };
+    const reader = completion.body.pipeThrough(new TextDecoderStream()).getReader();
 
-    setConversation(replacedConvos);
+    while (true) {
+      const res = await reader?.read();
+      if (res?.done) {
+        setStreamData("");
+        break;
+      }
+      parseDataStream(res.value);
+    }
+
     setInputDisabled(false);
   };
 
@@ -34,12 +71,11 @@ export default function Home() {
     setInputDisabled(true);
     setConversation(conversation.concat([
       { type: "user", message: prompt },
-      { type: "response", message: "Thinking..." }
+      { type: "response", message: "" }
     ]));
   };
 
   React.useEffect(() => {
-    console.log("conversation is updated")
     if (prompt.length > 0) {
       sendRequest();
       setPrompt("");

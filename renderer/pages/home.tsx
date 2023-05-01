@@ -8,6 +8,8 @@ export default function Home() {
   const [streamData, setStreamData] = React.useState("");
   const scrollRef = React.useRef(null);
 
+  // Whenever streamData is updated, the AI conversation message is also updated
+  // This will give us the trailing text/typing effect
   React.useEffect(() => {
     if (streamData.length > 0) {
       const replaced = conversation;
@@ -23,9 +25,11 @@ export default function Home() {
   const parseDataStream = (data) => {
     if (!data) return;
 
+    // Split data chunks delimited by \n\n
     const lines = data.split("\n\n")
       .filter((line) => line.length > 0 && !line.includes("[DONE]"));
 
+    // Convert chunks to JSON and extract text content
     for (const line of lines) {
       const clean = line.replace("data: ", "");
       const json = JSON.parse(clean);
@@ -38,7 +42,23 @@ export default function Home() {
     }
   };
 
+  const processDataStream = async (stream: Response) => {
+    // Convert text stream to UTF-8, then lock it to reader
+    const reader = stream.body.pipeThrough(new TextDecoderStream()).getReader();
+
+    // Read stream chunks sequentially, then parse each chunk to readable text
+    while (true) {
+      const res = await reader?.read();
+      if (res?.done) {
+        setStreamData("");
+        break;
+      }
+      parseDataStream(res.value);
+    }
+  };
+
   const sendRequest = async () => {
+    // Fetch chat completion data stream
     const completion = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -52,17 +72,7 @@ export default function Home() {
       }),
     });
 
-    const reader = completion.body.pipeThrough(new TextDecoderStream()).getReader();
-
-    while (true) {
-      const res = await reader?.read();
-      if (res?.done) {
-        setStreamData("");
-        break;
-      }
-      parseDataStream(res.value);
-    }
-
+    await processDataStream(completion);
     setInputDisabled(false);
   };
 

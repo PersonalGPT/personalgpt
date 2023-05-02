@@ -1,20 +1,34 @@
 import React from 'react';
 import Head from 'next/head';
 
+enum ChatCompletionRole {
+  SYSTEM = "system",
+  USER = "user",
+  ASSISTANT = "assistant",
+}
+
+interface ChatCompletionMessage {
+  role: ChatCompletionRole;
+  content: string;
+  name?: string;
+}
+
 export default function Home() {
-  const [conversation, setConversation] = React.useState([]);
+  const [conversation, setConversation] = React.useState<ChatCompletionMessage[]>([]);
   const [prompt, setPrompt] = React.useState("");
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const [streamData, setStreamData] = React.useState("");
   const scrollRef = React.useRef(null);
 
+  // Whenever streamData is updated, the AI conversation message is also updated
+  // This will give us the trailing text/typing effect
   React.useEffect(() => {
     if (streamData.length > 0) {
       const replaced = conversation;
 
       replaced[replaced.length - 1] = {
-        type: "response",
-        message: streamData,
+        role: ChatCompletionRole.ASSISTANT,
+        content: streamData,
       };
       setConversation(replaced);
     }
@@ -23,9 +37,11 @@ export default function Home() {
   const parseDataStream = (data) => {
     if (!data) return;
 
+    // Split data chunks delimited by \n\n
     const lines = data.split("\n\n")
       .filter((line) => line.length > 0 && !line.includes("[DONE]"));
 
+    // Convert chunks to JSON and extract text content
     for (const line of lines) {
       const clean = line.replace("data: ", "");
       const json = JSON.parse(clean);
@@ -38,22 +54,11 @@ export default function Home() {
     }
   };
 
-  const sendRequest = async () => {
-    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
-        stream: true,
-      }),
-    });
+  const processDataStream = async (stream: Response) => {
+    // Convert text stream to UTF-8, then lock it to reader
+    const reader = stream.body.pipeThrough(new TextDecoderStream()).getReader();
 
-    const reader = completion.body.pipeThrough(new TextDecoderStream()).getReader();
-
+    // Read stream chunks sequentially, then parse each chunk to readable text
     while (true) {
       const res = await reader?.read();
       if (res?.done) {
@@ -62,7 +67,24 @@ export default function Home() {
       }
       parseDataStream(res.value);
     }
+  };
 
+  const sendRequest = async () => {
+    // Fetch chat completion data stream
+    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.OPENAI_KEY}`,
+      },
+      body: JSON.stringify({
+        model: "gpt-3.5-turbo",
+        messages: [...conversation],
+        stream: true,
+      }),
+    });
+
+    await processDataStream(completion);
     setInputDisabled(false);
   };
 
@@ -70,8 +92,8 @@ export default function Home() {
     e.preventDefault();
     setInputDisabled(true);
     setConversation(conversation.concat([
-      { type: "user", message: prompt },
-      { type: "response", message: "" }
+      { role: ChatCompletionRole.USER, content: prompt },
+      { role: ChatCompletionRole.ASSISTANT, content: "" }
     ]));
   };
 
@@ -97,10 +119,10 @@ export default function Home() {
               <div key={index} className="flex gap-6 px-6 py-8 even:bg-gray-800">
                 <div className={`
                   w-8 h-8 rounded shrink-0
-                  ${convo.type === "response" ? "bg-green-500" : "bg-gray-500"}
+                  ${convo.role === ChatCompletionRole.ASSISTANT ? "bg-green-500" : "bg-gray-500"}
                 `} />
                 <p className="place-self-center whitespace-pre-wrap">
-                  {convo.message}
+                  {convo.content}
                 </p>
               </div>
             ))}

@@ -1,17 +1,6 @@
 import React from 'react';
 import Head from 'next/head';
-
-enum ChatCompletionRole {
-  SYSTEM = "system",
-  USER = "user",
-  ASSISTANT = "assistant",
-}
-
-interface ChatCompletionMessage {
-  role: ChatCompletionRole;
-  content: string;
-  name?: string;
-}
+import { ChatCompletionMessage, ChatCompletionRole } from '../models/chat';
 
 export default function Home() {
   const [conversation, setConversation] = React.useState<ChatCompletionMessage[]>([]);

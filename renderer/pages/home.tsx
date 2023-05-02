@@ -1,8 +1,20 @@
 import React from 'react';
 import Head from 'next/head';
 
+enum ChatCompletionRole {
+  SYSTEM = "system",
+  USER = "user",
+  ASSISTANT = "assistant",
+}
+
+interface ChatCompletionMessage {
+  role: ChatCompletionRole;
+  content: string;
+  name?: string;
+}
+
 export default function Home() {
-  const [conversation, setConversation] = React.useState([]);
+  const [conversation, setConversation] = React.useState<ChatCompletionMessage[]>([]);
   const [prompt, setPrompt] = React.useState("");
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const [streamData, setStreamData] = React.useState("");
@@ -15,8 +27,8 @@ export default function Home() {
       const replaced = conversation;
 
       replaced[replaced.length - 1] = {
-        type: "response",
-        message: streamData,
+        role: ChatCompletionRole.ASSISTANT,
+        content: streamData,
       };
       setConversation(replaced);
     }
@@ -67,7 +79,7 @@ export default function Home() {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: [{ role: "user", content: prompt }],
+        messages: [...conversation],
         stream: true,
       }),
     });
@@ -80,8 +92,8 @@ export default function Home() {
     e.preventDefault();
     setInputDisabled(true);
     setConversation(conversation.concat([
-      { type: "user", message: prompt },
-      { type: "response", message: "" }
+      { role: ChatCompletionRole.USER, content: prompt },
+      { role: ChatCompletionRole.ASSISTANT, content: "" }
     ]));
   };
 
@@ -107,10 +119,10 @@ export default function Home() {
               <div key={index} className="flex gap-6 px-6 py-8 even:bg-gray-800">
                 <div className={`
                   w-8 h-8 rounded shrink-0
-                  ${convo.type === "response" ? "bg-green-500" : "bg-gray-500"}
+                  ${convo.role === ChatCompletionRole.ASSISTANT ? "bg-green-500" : "bg-gray-500"}
                 `} />
                 <p className="place-self-center whitespace-pre-wrap">
-                  {convo.message}
+                  {convo.content}
                 </p>
               </div>
             ))}

@@ -79,7 +79,7 @@ export default function Home() {
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: [...conversation],
+        messages: conversation,
         stream: true,
       }),
     });

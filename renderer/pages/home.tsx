@@ -34,53 +34,29 @@ export default function Home() {
     }
   }, [streamData]);
 
-  const parseDataStream = (data) => {
-    if (!data) return;
-
-    // Split data chunks delimited by \n\n
-    const lines = data.split("\n\n")
-      .filter((line) => line.length > 0 && !line.includes("[DONE]"));
-
-    // Convert chunks to JSON and extract text content
-    for (const line of lines) {
-      const clean = line.replace("data: ", "");
-      const json = JSON.parse(clean);
-
-      const token = json.choices[0].delta.content;
-
-      if (token) {
-        setStreamData(prevData => prevData + token);
-      };
-    }
-  };
-
   const processDataStream = async (stream: Response) => {
     // Convert text stream to UTF-8, then lock it to reader
     const reader = stream.body.pipeThrough(new TextDecoderStream()).getReader();
 
-    // Read stream chunks sequentially, then parse each chunk to readable text
+    // Read stream chunks sequentially, text is already made readable
     while (true) {
       const res = await reader?.read();
       if (res?.done) {
         setStreamData("");
         break;
       }
-      parseDataStream(res.value);
+      setStreamData(prevData => prevData + res.value);
     }
   };
 
   const sendRequest = async () => {
-    // Fetch chat completion data stream
-    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
+    const completion = await fetch(`${process.env.BETTERGPT_SERVER_URL}/api/v1/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-3.5-turbo",
         messages: conversation,
-        stream: true,
       }),
     });
 

@@ -4,7 +4,7 @@ import { setStreamData } from "../chatSlice";
 
 export const createChatCompletion = createAsyncThunk(
   "chat/createCompletion",
-  async (messages: ChatCompletionMessage[], thunkAPI) => {
+  async (messages: ChatCompletionMessage[], { dispatch, signal }) => {
     const response = await fetch(`${process.env.BETTERGPT_SERVER_URL}/api/v1/chat`, {
       method: "POST",
       headers: {
@@ -13,19 +13,24 @@ export const createChatCompletion = createAsyncThunk(
       body: JSON.stringify({
         messages
       }),
+      signal,
+    }).catch((err) => {
+      throw err;
     });
 
-    if (!response.ok)
-      throw new Error(`Failed to start stream: ${response.status} ${response.statusText}`);
-
     // Convert text stream to UTF-8, then lock it to reader
-    const reader = response.body.pipeThrough(new TextDecoderStream()).getReader();
+    const reader = response.body
+      .pipeThrough(new TextDecoderStream(), { signal })
+      .getReader();
 
     // Read stream chunks sequentially, text is already made readable
     while (true) {
+      if (signal.aborted)
+        throw new Error("Chat completion has been aborted");
+
       const res = await reader?.read();
       if (res?.done) break;
-      thunkAPI.dispatch(setStreamData(res.value));
+      dispatch(setStreamData(res.value));
     }
   }
 );

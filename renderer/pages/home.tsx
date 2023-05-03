@@ -4,7 +4,7 @@ import { ChatCompletionRole } from '../models/chat';
 import { useSelector } from 'react-redux';
 import {
   addChatMessage,
-  editLastMessage,
+  appendToLastMessage,
   selectConversation,
   selectPrompt,
   selectStreamData,
@@ -26,7 +26,7 @@ export default function Home() {
   // This will give us the trailing text/typing effect
   React.useEffect(() => {
     if (streamData.length > 0) {
-      dispatch(editLastMessage(streamData));
+      dispatch(appendToLastMessage(streamData));
     }
   }, [streamData]);
 

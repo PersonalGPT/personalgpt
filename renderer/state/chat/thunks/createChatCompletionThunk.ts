@@ -1,6 +1,6 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ChatCompletionMessage } from "../../../models/chat";
-import { appendStreamData } from "../chatSlice";
+import { setStreamData } from "../chatSlice";
 
 export const createChatCompletion = createAsyncThunk(
   "chat/createCompletion",
@@ -25,7 +25,7 @@ export const createChatCompletion = createAsyncThunk(
     while (true) {
       const res = await reader?.read();
       if (res?.done) break;
-      thunkAPI.dispatch(appendStreamData(res.value));
+      thunkAPI.dispatch(setStreamData(res.value));
     }
   }
 );

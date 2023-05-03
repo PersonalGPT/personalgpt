@@ -1,6 +1,6 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
-import { ChatCompletionMessage, ChatCompletionRole } from "../../models/chat";
+import { ChatCompletionMessage } from "../../models/chat";
 import { RootState } from "../store";
 import { createChatCompletion } from "./thunks/createChatCompletionThunk";
 
@@ -23,13 +23,13 @@ export const chatSlice = createSlice({
     addChatMessage: (state, action: PayloadAction<ChatCompletionMessage | ChatCompletionMessage[]>) => {
       state.conversation = state.conversation.concat(action.payload);
     },
-    editLastMessage: (state, action: PayloadAction<string>) => {
+    appendToLastMessage: (state, action: PayloadAction<string>) => {
       const convo = state.conversation;
-      const last = convo.length - 1;
+      const last = convo[convo.length - 1];
 
-      convo[last] = {
-        ...convo[last],
-        content: action.payload,
+      convo[convo.length - 1] = {
+        ...last,
+        content: last.content + action.payload,
       };
 
       state.conversation = convo;
@@ -39,9 +39,6 @@ export const chatSlice = createSlice({
     },
     setStreamData: (state, action: PayloadAction<string>) => {
       state.streamData = action.payload;
-    },
-    appendStreamData: (state, action: PayloadAction<string>) => {
-      state.streamData = state.streamData + action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -53,10 +50,9 @@ export const chatSlice = createSlice({
 
 export const {
   addChatMessage,
-  editLastMessage,
+  appendToLastMessage,
   setPrompt,
   setStreamData,
-  appendStreamData,
 } = chatSlice.actions;
 
 export const selectConversation = (state: RootState) => state.chat.conversation;

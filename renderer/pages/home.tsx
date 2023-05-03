@@ -1,106 +1,53 @@
 import React from 'react';
 import Head from 'next/head';
-
-enum ChatCompletionRole {
-  SYSTEM = "system",
-  USER = "user",
-  ASSISTANT = "assistant",
-}
-
-interface ChatCompletionMessage {
-  role: ChatCompletionRole;
-  content: string;
-  name?: string;
-}
+import { ChatCompletionRole } from '../models/chat';
+import { useSelector } from 'react-redux';
+import {
+  addChatMessage,
+  appendToLastMessage,
+  selectConversation,
+  selectIsChatLoading,
+  selectPrompt,
+  selectStreamData,
+  setPrompt
+} from '../state/chat/chatSlice';
+import { useAppDispatch } from '../state/hooks';
+import { createChatCompletion } from '../state/chat/thunks/createChatCompletionThunk';
 
 export default function Home() {
-  const [conversation, setConversation] = React.useState<ChatCompletionMessage[]>([]);
-  const [prompt, setPrompt] = React.useState("");
   const [isInputDisabled, setInputDisabled] = React.useState(false);
-  const [streamData, setStreamData] = React.useState("");
   const scrollRef = React.useRef(null);
+
+  const isLoading = useSelector(selectIsChatLoading);
+  const conversation = useSelector(selectConversation);
+  const prompt = useSelector(selectPrompt);
+  const streamData = useSelector(selectStreamData);
+  const dispatch = useAppDispatch();
 
   // Whenever streamData is updated, the AI conversation message is also updated
   // This will give us the trailing text/typing effect
   React.useEffect(() => {
     if (streamData.length > 0) {
-      const replaced = conversation;
-
-      replaced[replaced.length - 1] = {
-        role: ChatCompletionRole.ASSISTANT,
-        content: streamData,
-      };
-      setConversation(replaced);
+      dispatch(appendToLastMessage(streamData));
     }
   }, [streamData]);
-
-  const parseDataStream = (data) => {
-    if (!data) return;
-
-    // Split data chunks delimited by \n\n
-    const lines = data.split("\n\n")
-      .filter((line) => line.length > 0 && !line.includes("[DONE]"));
-
-    // Convert chunks to JSON and extract text content
-    for (const line of lines) {
-      const clean = line.replace("data: ", "");
-      const json = JSON.parse(clean);
-
-      const token = json.choices[0].delta.content;
-
-      if (token) {
-        setStreamData(prevData => prevData + token);
-      };
-    }
-  };
-
-  const processDataStream = async (stream: Response) => {
-    // Convert text stream to UTF-8, then lock it to reader
-    const reader = stream.body.pipeThrough(new TextDecoderStream()).getReader();
-
-    // Read stream chunks sequentially, then parse each chunk to readable text
-    while (true) {
-      const res = await reader?.read();
-      if (res?.done) {
-        setStreamData("");
-        break;
-      }
-      parseDataStream(res.value);
-    }
-  };
-
-  const sendRequest = async () => {
-    // Fetch chat completion data stream
-    const completion = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${process.env.OPENAI_KEY}`,
-      },
-      body: JSON.stringify({
-        model: "gpt-3.5-turbo",
-        messages: [...conversation],
-        stream: true,
-      }),
-    });
-
-    await processDataStream(completion);
-    setInputDisabled(false);
-  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setInputDisabled(true);
-    setConversation(conversation.concat([
-      { role: ChatCompletionRole.USER, content: prompt },
-      { role: ChatCompletionRole.ASSISTANT, content: "" }
-    ]));
+    dispatch(
+      addChatMessage([
+        { role: ChatCompletionRole.USER, content: prompt },
+        { role: ChatCompletionRole.ASSISTANT, content: "" }
+      ])
+    );
   };
 
   React.useEffect(() => {
     if (prompt.length > 0) {
-      sendRequest();
-      setPrompt("");
+      dispatch(createChatCompletion(conversation));
+      setInputDisabled(false);
+      dispatch(setPrompt(""));
     }
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -135,13 +82,14 @@ export default function Home() {
             <input
               type="text"
               value={prompt}
-              placeholder="Enter your message here..."
-              onChange={e => setPrompt(e.target.value)}
-              disabled={isInputDisabled}
+              placeholder={isLoading ? "Please wait for AI response..." : "Enter your message here..."}
+              onChange={e => dispatch(setPrompt(e.target.value))}
+              disabled={isInputDisabled || isLoading}
               className="
                 rounded-md p-3 bg-gray-700 text-white w-full
                 focus-visible:outline-gray-500 focus-visible:outline-none
-                focus-visible:outline-offset-0 disabled:text-gray-500
+                focus-visible:outline-offset-0 disabled:placeholder:text-gray-500
+                disabled:hover:cursor-not-allowed
               "
             />
           </form>

@@ -5,10 +5,12 @@ import { RootState } from "../store";
 
 export interface ChatState {
   conversation: ChatCompletionMessage[];
+  prompt: string;
 }
 
 const initialState = {
   conversation: [],
+  prompt: "",
 };
 
 export const chatSlice = createSlice({
@@ -29,11 +31,19 @@ export const chatSlice = createSlice({
 
       state.conversation = convo;
     },
+    setPrompt: (state, action: PayloadAction<string>) => {
+      state.prompt = action.payload;
+    },
   },
 });
 
-export const { addChatMessage, editLastMessage } = chatSlice.actions;
+export const {
+  addChatMessage,
+  editLastMessage,
+  setPrompt
+} = chatSlice.actions;
 
 export const selectConversation = (state: RootState) => state.chat.conversation;
+export const selectPrompt = (state: RootState) => state.chat.prompt;
 
 export default chatSlice.reducer;

@@ -2,23 +2,28 @@ import React from 'react';
 import Head from 'next/head';
 import { ChatCompletionRole } from '../models/chat';
 import { useSelector } from 'react-redux';
-import { addChatMessage, editLastMessage, selectConversation } from '../state/chat/chatSlice';
+import {
+  addChatMessage,
+  editLastMessage,
+  selectConversation,
+  selectPrompt,
+  setPrompt
+} from '../state/chat/chatSlice';
 import { useAppDispatch } from '../state/hooks';
 
 export default function Home() {
-  const [prompt, setPrompt] = React.useState("");
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const [streamData, setStreamData] = React.useState("");
   const scrollRef = React.useRef(null);
 
   const conversation = useSelector(selectConversation);
+  const prompt = useSelector(selectPrompt);
   const dispatch = useAppDispatch();
 
   // Whenever streamData is updated, the AI conversation message is also updated
   // This will give us the trailing text/typing effect
   React.useEffect(() => {
     if (streamData.length > 0) {
-      console.log(streamData);
       dispatch(editLastMessage(streamData));
     }
   }, [streamData]);
@@ -67,7 +72,7 @@ export default function Home() {
   React.useEffect(() => {
     if (prompt.length > 0) {
       sendRequest();
-      setPrompt("");
+      dispatch(setPrompt(""));
     }
     if (scrollRef.current) {
       scrollRef.current.scrollIntoView({ behavior: "smooth" });
@@ -103,7 +108,7 @@ export default function Home() {
               type="text"
               value={prompt}
               placeholder="Enter your message here..."
-              onChange={e => setPrompt(e.target.value)}
+              onChange={e => dispatch(setPrompt(e.target.value))}
               disabled={isInputDisabled}
               className="
                 rounded-md p-3 bg-gray-700 text-white w-full

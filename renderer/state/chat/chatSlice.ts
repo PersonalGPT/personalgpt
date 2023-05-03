@@ -5,12 +5,14 @@ import { RootState } from "../store";
 import { createChatCompletion } from "./thunks/createChatCompletionThunk";
 
 export interface ChatState {
+  isLoading: boolean;
   conversation: ChatCompletionMessage[];
   prompt: string;
   streamData: string;
 }
 
 const initialState = {
+  isLoading: false,
   conversation: [],
   prompt: "",
   streamData: "",
@@ -42,9 +44,17 @@ export const chatSlice = createSlice({
     },
   },
   extraReducers: (builder) => {
-    builder.addCase(createChatCompletion.fulfilled, (state, action) => {
-      state.streamData = "";
-    });
+    builder
+      .addCase(createChatCompletion.pending, (state, action) => {
+        state.isLoading = true;
+      })
+      .addCase(createChatCompletion.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.streamData = "";
+      })
+      .addCase(createChatCompletion.rejected, (state, action) => {
+        state.isLoading = false;
+      });
   }
 });
 
@@ -55,6 +65,7 @@ export const {
   setStreamData,
 } = chatSlice.actions;
 
+export const selectIsChatLoading = (state: RootState) => state.chat.isLoading;
 export const selectConversation = (state: RootState) => state.chat.conversation;
 export const selectPrompt = (state: RootState) => state.chat.prompt;
 export const selectStreamData = (state: RootState) => state.chat.streamData;

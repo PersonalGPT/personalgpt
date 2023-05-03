@@ -6,6 +6,7 @@ import {
   addChatMessage,
   appendToLastMessage,
   selectConversation,
+  selectIsChatLoading,
   selectPrompt,
   selectStreamData,
   setPrompt
@@ -17,6 +18,7 @@ export default function Home() {
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const scrollRef = React.useRef(null);
 
+  const isLoading = useSelector(selectIsChatLoading);
   const conversation = useSelector(selectConversation);
   const prompt = useSelector(selectPrompt);
   const streamData = useSelector(selectStreamData);
@@ -80,13 +82,14 @@ export default function Home() {
             <input
               type="text"
               value={prompt}
-              placeholder="Enter your message here..."
+              placeholder={isLoading ? "Please wait for AI response..." : "Enter your message here..."}
               onChange={e => dispatch(setPrompt(e.target.value))}
-              disabled={isInputDisabled}
+              disabled={isInputDisabled || isLoading}
               className="
                 rounded-md p-3 bg-gray-700 text-white w-full
                 focus-visible:outline-gray-500 focus-visible:outline-none
-                focus-visible:outline-offset-0 disabled:text-gray-500
+                focus-visible:outline-offset-0 disabled:placeholder:text-gray-500
+                disabled:hover:cursor-not-allowed
               "
             />
           </form>

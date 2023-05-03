@@ -1,25 +1,25 @@
 import React from 'react';
 import Head from 'next/head';
-import { ChatCompletionMessage, ChatCompletionRole } from '../models/chat';
+import { ChatCompletionRole } from '../models/chat';
+import { useSelector } from 'react-redux';
+import { addChatMessage, editLastMessage, selectConversation } from '../state/chat/chatSlice';
+import { useAppDispatch } from '../state/hooks';
 
 export default function Home() {
-  const [conversation, setConversation] = React.useState<ChatCompletionMessage[]>([]);
   const [prompt, setPrompt] = React.useState("");
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const [streamData, setStreamData] = React.useState("");
   const scrollRef = React.useRef(null);
 
+  const conversation = useSelector(selectConversation);
+  const dispatch = useAppDispatch();
+
   // Whenever streamData is updated, the AI conversation message is also updated
   // This will give us the trailing text/typing effect
   React.useEffect(() => {
     if (streamData.length > 0) {
-      const replaced = conversation;
-
-      replaced[replaced.length - 1] = {
-        role: ChatCompletionRole.ASSISTANT,
-        content: streamData,
-      };
-      setConversation(replaced);
+      console.log(streamData);
+      dispatch(editLastMessage(streamData));
     }
   }, [streamData]);
 
@@ -56,10 +56,12 @@ export default function Home() {
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setInputDisabled(true);
-    setConversation(conversation.concat([
-      { role: ChatCompletionRole.USER, content: prompt },
-      { role: ChatCompletionRole.ASSISTANT, content: "" }
-    ]));
+    dispatch(
+      addChatMessage([
+        { role: ChatCompletionRole.USER, content: prompt },
+        { role: ChatCompletionRole.ASSISTANT, content: "" }
+      ])
+    );
   };
 
   React.useEffect(() => {

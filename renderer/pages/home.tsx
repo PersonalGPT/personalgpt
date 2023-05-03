@@ -7,17 +7,19 @@ import {
   editLastMessage,
   selectConversation,
   selectPrompt,
+  selectStreamData,
   setPrompt
 } from '../state/chat/chatSlice';
 import { useAppDispatch } from '../state/hooks';
+import { createChatCompletion } from '../state/chat/thunks/createChatCompletionThunk';
 
 export default function Home() {
   const [isInputDisabled, setInputDisabled] = React.useState(false);
-  const [streamData, setStreamData] = React.useState("");
   const scrollRef = React.useRef(null);
 
   const conversation = useSelector(selectConversation);
   const prompt = useSelector(selectPrompt);
+  const streamData = useSelector(selectStreamData);
   const dispatch = useAppDispatch();
 
   // Whenever streamData is updated, the AI conversation message is also updated
@@ -27,36 +29,6 @@ export default function Home() {
       dispatch(editLastMessage(streamData));
     }
   }, [streamData]);
-
-  const processDataStream = async (stream: Response) => {
-    // Convert text stream to UTF-8, then lock it to reader
-    const reader = stream.body.pipeThrough(new TextDecoderStream()).getReader();
-
-    // Read stream chunks sequentially, text is already made readable
-    while (true) {
-      const res = await reader?.read();
-      if (res?.done) {
-        setStreamData("");
-        break;
-      }
-      setStreamData(prevData => prevData + res.value);
-    }
-  };
-
-  const sendRequest = async () => {
-    const completion = await fetch(`${process.env.BETTERGPT_SERVER_URL}/api/v1/chat`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        messages: conversation,
-      }),
-    });
-
-    await processDataStream(completion);
-    setInputDisabled(false);
-  };
 
   const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -71,7 +43,8 @@ export default function Home() {
 
   React.useEffect(() => {
     if (prompt.length > 0) {
-      sendRequest();
+      dispatch(createChatCompletion(conversation));
+      setInputDisabled(false);
       dispatch(setPrompt(""));
     }
     if (scrollRef.current) {

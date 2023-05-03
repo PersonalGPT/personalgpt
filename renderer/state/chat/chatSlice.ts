@@ -54,6 +54,7 @@ export const chatSlice = createSlice({
       })
       .addCase(createChatCompletion.rejected, (state, action) => {
         state.isLoading = false;
+        state.streamData = "";
       });
   }
 });

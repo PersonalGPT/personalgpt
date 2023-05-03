@@ -15,14 +15,15 @@ import { useAppDispatch } from '../state/hooks';
 import { createChatCompletion } from '../state/chat/thunks/createChatCompletionThunk';
 
 export default function Home() {
-  const [isInputDisabled, setInputDisabled] = React.useState(false);
-  const scrollRef = React.useRef(null);
-
   const isLoading = useSelector(selectIsChatLoading);
   const conversation = useSelector(selectConversation);
   const prompt = useSelector(selectPrompt);
   const streamData = useSelector(selectStreamData);
   const dispatch = useAppDispatch();
+
+  const [isInputDisabled, setInputDisabled] = React.useState(false);
+  const scrollRef = React.useRef(null);
+  const abortRef = React.useRef(null);
 
   // Whenever streamData is updated, the AI conversation message is also updated
   // This will give us the trailing text/typing effect
@@ -43,14 +44,16 @@ export default function Home() {
     );
   };
 
+
   React.useEffect(() => {
     if (prompt.length > 0) {
-      dispatch(createChatCompletion(conversation));
+      const promise = dispatch(createChatCompletion(conversation));
+      abortRef.current = promise.abort;
       setInputDisabled(false);
       dispatch(setPrompt(""));
     }
     if (scrollRef.current) {
-      scrollRef.current.scrollIntoView({ behavior: "smooth" });
+      scrollRef.current.scrollIntoView({ behavior: "instant" });
     }
   }, [conversation]);
 
@@ -75,24 +78,35 @@ export default function Home() {
             ))}
             <div ref={scrollRef} />
           </div>
-          <form
-            onSubmit={handleSubmit}
-            className="sticky bottom-0 h-28 bg-gradient-to-t from-gray-900 to-gray-900/90"
-          >
-            <input
-              type="text"
-              value={prompt}
-              placeholder={isLoading ? "Please wait for AI response..." : "Enter your message here..."}
-              onChange={e => dispatch(setPrompt(e.target.value))}
-              disabled={isInputDisabled || isLoading}
-              className="
-                rounded-md p-3 bg-gray-700 text-white w-full
-                focus-visible:outline-gray-500 focus-visible:outline-none
-                focus-visible:outline-offset-0 disabled:placeholder:text-gray-500
-                disabled:hover:cursor-not-allowed
-              "
-            />
-          </form>
+          <div className="flex flex-col gap-4 sticky bottom-0">
+            <button
+              className={`
+                bg-gray-700 w-fit px-2 py-2.5 rounded-md place-self-center
+                hover:bg-gray-600 ${isLoading ? "block" : "hidden"}
+              `}
+              onClick={() => abortRef.current("Stop generating")}
+            >
+              🛑 Stop Generating
+            </button>
+            <form
+              onSubmit={handleSubmit}
+              className="h-28 bg-gradient-to-t from-gray-900 to-gray-900/90"
+            >
+              <input
+                type="text"
+                value={prompt}
+                placeholder={isLoading ? "Please wait for AI response..." : "Enter your message here..."}
+                onChange={e => dispatch(setPrompt(e.target.value))}
+                disabled={isInputDisabled || isLoading}
+                className="
+                  rounded-md p-3 bg-gray-700 text-white w-full
+                  focus-visible:outline-gray-500 focus-visible:outline-none
+                  focus-visible:outline-offset-0 disabled:placeholder:text-gray-500
+                  disabled:hover:cursor-not-allowed
+                "
+              />
+            </form>
+          </div>
         </div>
       </main>
     </React.Fragment>

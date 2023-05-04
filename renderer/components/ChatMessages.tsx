@@ -1,0 +1,33 @@
+import React from "react";
+import { useSelector } from "react-redux";
+import { selectConversation } from "../state/chat/chatSlice";
+import { ChatCompletionRole } from "../models/chat";
+
+export default function ChatMessages() {
+  const conversation = useSelector(selectConversation);
+
+  const scrollRef = React.useRef(null);
+
+  React.useEffect(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollIntoView({ behavior: "instant" });
+    }
+  }, [conversation]);
+
+  return (
+    <div className="grow w-full max-w-4xl place-self-center">
+      {conversation.map((convo, index) => (
+        <div key={index} className="flex gap-6 px-6 py-8 even:bg-gray-800">
+          <div className={`
+            w-8 h-8 rounded shrink-0
+            ${convo.role === ChatCompletionRole.ASSISTANT ? "bg-green-500" : "bg-gray-500"}
+          `} />
+          <p className="place-self-center whitespace-pre-wrap">
+            {convo.content}
+          </p>
+        </div>
+      ))}
+      <div ref={scrollRef} />
+    </div>
+  );
+}

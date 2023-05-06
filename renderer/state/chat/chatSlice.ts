@@ -3,38 +3,59 @@ import type { PayloadAction } from "@reduxjs/toolkit";
 import { ChatCompletionMessage } from "../../models/chat";
 import { RootState } from "../store";
 import { createChatCompletion } from "./thunks/createChatCompletionThunk";
+import { Conversation } from "../../models/conversation";
+import { conversationApi } from "../services/conversation";
 
 export interface ChatState {
   isLoading: boolean;
-  conversation: ChatCompletionMessage[];
+  conversations: { [id: string]: Conversation };
   prompt: string;
   streamData: string;
+  currentConversationId: string | null;
 }
 
-const initialState = {
+const initialState: ChatState = {
   isLoading: false,
-  conversation: [],
+  conversations: {},
   prompt: "",
   streamData: "",
+  currentConversationId: null,
 };
 
 export const chatSlice = createSlice({
   name: "chat",
   initialState,
   reducers: {
-    addChatMessage: (state, action: PayloadAction<ChatCompletionMessage | ChatCompletionMessage[]>) => {
-      state.conversation = state.conversation.concat(action.payload);
-    },
-    appendToLastMessage: (state, action: PayloadAction<string>) => {
-      const convo = state.conversation;
-      const last = convo[convo.length - 1];
+    addChatMessage: (state, action: PayloadAction<{
+      id: string;
+      messages: ChatCompletionMessage | ChatCompletionMessage[];
+    }>) => {
+      const { id, messages } = action.payload;
+      const convo = state.conversations[id];
+      let msgs = convo.messages;
 
-      convo[convo.length - 1] = {
+      msgs = msgs.concat(messages);
+      state.conversations[id] = {
+        ...convo,
+        messages: msgs,
+      };
+    },
+    appendToLastMessage: (state, action: PayloadAction<{
+      id: string;
+      contentToAppend: string;
+    }>) => {
+      const { id, contentToAppend } = action.payload;
+
+      const convo: Conversation = state.conversations[id];
+      const messages = convo.messages;
+      const last = messages[messages.length - 1];
+
+      messages[messages.length - 1] = {
         ...last,
-        content: last.content + action.payload,
+        content: last.content + contentToAppend,
       };
 
-      state.conversation = convo;
+      state.conversations[id] = convo;
     },
     setPrompt: (state, action: PayloadAction<string>) => {
       state.prompt = action.payload;
@@ -56,6 +77,34 @@ export const chatSlice = createSlice({
         state.isLoading = false;
         state.streamData = "";
       });
+    
+    builder.addMatcher(
+      conversationApi.endpoints.getAllConversations.matchFulfilled,
+      (state, { payload }) => {
+        payload.forEach(preview => {
+          state.conversations[preview.id] = {
+            ...preview,
+            messages: [],
+          };
+        });
+      }
+    );
+
+    builder.addMatcher(
+      conversationApi.endpoints.getConversationById.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+        state.currentConversationId = payload.id;
+      }
+    );
+
+    builder.addMatcher(
+      conversationApi.endpoints.createConversation.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+        state.currentConversationId = payload.id;
+      }
+    );
   }
 });
 
@@ -67,8 +116,11 @@ export const {
 } = chatSlice.actions;
 
 export const selectIsChatLoading = (state: RootState) => state.chat.isLoading;
-export const selectConversation = (state: RootState) => state.chat.conversation;
+export const selectConversations = (state: RootState) => state.chat.conversations;
+export const selectConversationById = (id: string) =>
+  (state: RootState): Conversation => state.chat.conversations[id];
 export const selectPrompt = (state: RootState) => state.chat.prompt;
 export const selectStreamData = (state: RootState) => state.chat.streamData;
+export const selectCurrentConversationId = (state: RootState) => state.chat.currentConversationId;
 
 export default chatSlice.reducer;

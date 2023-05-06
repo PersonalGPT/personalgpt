@@ -1,44 +1,40 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { addChatMessage, selectConversation, selectIsChatLoading, selectPrompt, setPrompt } from "../state/chat/chatSlice";
+import { selectIsChatLoading, selectPrompt, setPrompt } from "../state/chat/chatSlice";
 import { useAppDispatch } from "../state/hooks";
-import { ChatCompletionRole } from "../models/chat";
 import { createChatCompletion } from "../state/chat/thunks/createChatCompletionThunk";
+import { useCreateConversationMutation } from "../state/services/conversation";
 
-export default function ChatInput({
-  handleSubmit
-}: {
-  handleSubmit?: (e: React.FormEvent<HTMLFormElement>) => void;
-}) {
+export default function ChatInput() {
   const isLoading = useSelector(selectIsChatLoading);
-  const conversation = useSelector(selectConversation);
-  const prompt = useSelector(selectPrompt);
+
+  const [prompt, setPrompt] = React.useState("");
+  const [createConversation, convoResult] = useCreateConversationMutation({
+    fixedCacheKey: "shared-convoResult",
+  });
   const dispatch = useAppDispatch();
 
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const abortRef = React.useRef(null);
 
-  if (!handleSubmit) {
-    handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-      e.preventDefault();
-      setInputDisabled(true);
-      dispatch(
-        addChatMessage([
-          { role: ChatCompletionRole.USER, content: prompt },
-          { role: ChatCompletionRole.ASSISTANT, content: "" }
-        ])
-      );
-    };
-  }
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    setInputDisabled(true);
+    console.log("Creating conversation...");
+    await createConversation({ prompt });
+  };
 
   React.useEffect(() => {
-    if (prompt.length > 0) {
-      const promise = dispatch(createChatCompletion(conversation));
+    if (convoResult.data && prompt.length > 0) {
+      console.log(convoResult.data);
+      const { id, messages } = convoResult.data;
+      console.log("Creating chat completion...")
+      const promise = dispatch(createChatCompletion({ id, messages }));
       abortRef.current = promise.abort;
       setInputDisabled(false);
-      dispatch(setPrompt(""));
+      setPrompt("");
     }
-  }, [conversation]);
+  }, [convoResult]);
 
   return (
     <div
@@ -64,7 +60,7 @@ export default function ChatInput({
           type="text"
           value={prompt}
           placeholder={isLoading ? "Please wait for AI response..." : "Enter your message here..."}
-          onChange={e => dispatch(setPrompt(e.target.value))}
+          onChange={e => setPrompt(e.target.value)}
           disabled={isInputDisabled || isLoading}
           className="
             rounded-md p-3 bg-gray-700 text-white w-full

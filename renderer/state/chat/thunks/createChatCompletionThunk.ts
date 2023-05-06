@@ -1,22 +1,30 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
-import { ChatCompletionMessage } from "../../../models/chat";
-import { setStreamData } from "../chatSlice";
+import { ChatCompletionMessage, ChatCompletionRole } from "../../../models/chat";
+import { addChatMessage, setStreamData } from "../chatSlice";
 
 export const createChatCompletion = createAsyncThunk(
   "chat/createCompletion",
-  async (messages: ChatCompletionMessage[], { dispatch, signal }) => {
+  async ({ id, messages }: {
+    id: string;
+    messages: ChatCompletionMessage[];
+  }, { dispatch, signal }) => {
     const response = await fetch(`${process.env.BETTERGPT_SERVER_URL}/api/v1/chat`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({
-        messages
-      }),
+      body: JSON.stringify({ id, messages }),
       signal,
     }).catch((err) => {
       throw err;
     });
+
+    dispatch(addChatMessage({
+      id,
+      messages: [
+        { role: ChatCompletionRole.ASSISTANT, content: "" }
+      ],
+    }));
 
     // Convert text stream to UTF-8, then lock it to reader
     const reader = response.body

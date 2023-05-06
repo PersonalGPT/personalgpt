@@ -9,7 +9,6 @@ import { conversationApi } from "../services/conversation";
 export interface ChatState {
   isLoading: boolean;
   conversations: { [id: string]: Conversation };
-  prompt: string;
   streamData: string;
   currentConversationId: string | null;
 }
@@ -17,7 +16,6 @@ export interface ChatState {
 const initialState: ChatState = {
   isLoading: false,
   conversations: {},
-  prompt: "",
   streamData: "",
   currentConversationId: null,
 };
@@ -56,9 +54,6 @@ export const chatSlice = createSlice({
       };
 
       state.conversations[id] = convo;
-    },
-    setPrompt: (state, action: PayloadAction<string>) => {
-      state.prompt = action.payload;
     },
     setStreamData: (state, action: PayloadAction<string>) => {
       state.streamData = action.payload;
@@ -105,13 +100,19 @@ export const chatSlice = createSlice({
         state.currentConversationId = payload.id;
       }
     );
+
+    builder.addMatcher(
+      conversationApi.endpoints.updateConversationMessages.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+      }
+    );
   }
 });
 
 export const {
   addChatMessage,
   appendToLastMessage,
-  setPrompt,
   setStreamData,
 } = chatSlice.actions;
 
@@ -119,7 +120,6 @@ export const selectIsChatLoading = (state: RootState) => state.chat.isLoading;
 export const selectConversations = (state: RootState) => state.chat.conversations;
 export const selectConversationById = (id: string) =>
   (state: RootState): Conversation => state.chat.conversations[id];
-export const selectPrompt = (state: RootState) => state.chat.prompt;
 export const selectStreamData = (state: RootState) => state.chat.streamData;
 export const selectCurrentConversationId = (state: RootState) => state.chat.currentConversationId;
 

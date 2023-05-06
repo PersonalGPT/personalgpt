@@ -18,6 +18,13 @@ export const conversationApi = createApi({
         body: { prompt },
       }),
     }),
+    updateConversationMessages: builder.mutation<Conversation, Pick<Conversation, "id"> & Partial<Conversation>>({
+      query: ({ id, messages }: Pick<Conversation, "id"> & Partial<Conversation>) => ({
+        url: "/conversations",
+        method: "PATCH",
+        body: { id, messages },
+      }),
+    }),
   }),
 });
 
@@ -25,4 +32,5 @@ export const {
   useGetAllConversationsQuery,
   useGetConversationByIdQuery,
   useCreateConversationMutation,
+  useUpdateConversationMessagesMutation,
 } = conversationApi;

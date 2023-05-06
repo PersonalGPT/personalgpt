@@ -1,5 +1,5 @@
 import React from "react";
-import { ChatCompletionMessage, ChatCompletionRole } from "../models/chat";
+import { ChatCompletionRole } from "../models/chat";
 import { useSelector } from "react-redux";
 import { selectConversationById } from "../state/chat/chatSlice";
 

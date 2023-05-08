@@ -18,11 +18,18 @@ export const conversationApi = createApi({
         body: { prompt },
       }),
     }),
-    updateConversationMessages: builder.mutation<Conversation, Pick<Conversation, "id"> & Partial<Conversation>>({
-      query: ({ id, messages }: Pick<Conversation, "id"> & Partial<Conversation>) => ({
+    updateConversationMessages: builder.mutation<Conversation, Pick<Conversation, "id" | "messages">>({
+      query: ({ id, messages }: Pick<Conversation, "id" | "messages">) => ({
         url: "/conversations",
         method: "PATCH",
         body: { id, messages },
+      }),
+    }),
+    updateConversationTitle: builder.mutation<Conversation, Pick<Conversation, "id" | "title">>({
+      query: ({ id, title }: Pick<Conversation, "id" | "title">) => ({
+        url: "/conversations",
+        method: "PATCH",
+        body: { id, title },
       }),
     }),
   }),
@@ -33,4 +40,5 @@ export const {
   useGetConversationByIdQuery,
   useCreateConversationMutation,
   useUpdateConversationMessagesMutation,
+  useUpdateConversationTitleMutation,
 } = conversationApi;

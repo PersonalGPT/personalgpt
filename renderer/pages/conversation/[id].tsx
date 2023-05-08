@@ -6,15 +6,14 @@ import ChatInput from "../../components/ChatInput";
 import ChatMessages from "../../components/ChatMessages";
 import { useGetConversationByIdQuery } from "../../state/services/conversation";
 import StreamDataRenderer from "../../components/StreamDataRenderer";
+import { useSelector } from "react-redux";
+import { selectConversationById } from "../../state/chat/chatSlice";
 
 export default function Conversation() {
   const router = useRouter();
   const { id } = router.query;
-  const { data: conversation, error, isLoading } = useGetConversationByIdQuery(id as string);
-
-  React.useEffect(() => {
-    console.log(conversation);
-  }, [conversation]);
+  const { error, isLoading } = useGetConversationByIdQuery(id as string);
+  const conversation = useSelector(selectConversationById(id as string));
 
   return (
     <React.Fragment>
@@ -22,9 +21,13 @@ export default function Conversation() {
         <title>Conversation {id} - BetterGPT UI</title>
       </Head>
       <main className="w-screen h-screen flex overflow-x-hidden">
-        <Sidebar />
+        <Sidebar selectedId={id as string} />
         <div className="grow flex flex-col w-full relative overflow-y-auto">
-          <ChatMessages conversationId={id as string} />
+          {error ? (<p>There was an error.</p>) : isLoading ? (
+            <p>Loading...</p>
+          ) : conversation ? (
+            <ChatMessages conversationId={id as string} />
+          ) : null}
           <ChatInput />
         </div>
         <StreamDataRenderer />

@@ -55,6 +55,9 @@ export const chatSlice = createSlice({
 
       state.conversations[id] = convo;
     },
+    setCurrentConversationId: (state, action: PayloadAction<string>) => {
+      state.currentConversationId = action.payload;
+    },
     setStreamData: (state, action: PayloadAction<string>) => {
       state.streamData = action.payload;
     },
@@ -72,7 +75,7 @@ export const chatSlice = createSlice({
         state.isLoading = false;
         state.streamData = "";
       });
-    
+
     builder.addMatcher(
       conversationApi.endpoints.getAllConversations.matchFulfilled,
       (state, { payload }) => {
@@ -82,6 +85,7 @@ export const chatSlice = createSlice({
             messages: [],
           };
         });
+        state.currentConversationId = null;
       }
     );
 
@@ -107,12 +111,20 @@ export const chatSlice = createSlice({
         state.conversations[payload.id] = { ...payload };
       }
     );
+
+    builder.addMatcher(
+      conversationApi.endpoints.updateConversationTitle.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+      }
+    );
   }
 });
 
 export const {
   addChatMessage,
   appendToLastMessage,
+  setCurrentConversationId,
   setStreamData,
 } = chatSlice.actions;
 

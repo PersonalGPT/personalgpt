@@ -1,6 +1,6 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { addChatMessage, selectConversationById, selectCurrentConversationId, selectIsChatLoading } from "../state/chat/chatSlice";
+import { selectConversationById, selectCurrentConversationId, selectIsChatLoading } from "../state/chat/chatSlice";
 import { useAppDispatch } from "../state/hooks";
 import { createChatCompletion } from "../state/chat/thunks/createChatCompletionThunk";
 import { useCreateConversationMutation, useUpdateConversationMessagesMutation } from "../state/services/conversation";
@@ -16,10 +16,8 @@ export default function ChatInput() {
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const abortRef = React.useRef(null);
 
-  const [createConversation, convoResult] = useCreateConversationMutation({
-    fixedCacheKey: "shared-convoResult",
-  });
-  const [updateConversationMessages, messageResult] = useUpdateConversationMessagesMutation();
+  const [createConversation, { data: newConversation }] = useCreateConversationMutation();
+  const [updateConversationMessages, { data: existingConversation }] = useUpdateConversationMessagesMutation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -43,18 +41,18 @@ export default function ChatInput() {
   };
 
   React.useEffect(() => {
-    if (convoResult.data && prompt.length > 0) {
-      const { id, messages } = convoResult.data;
+    if (newConversation && prompt.length > 0) {
+      const { id, messages } = newConversation;
       generateChatCompletion({ id, messages });
     }
-  }, [convoResult]);
+  }, [newConversation]);
 
   React.useEffect(() => {
-    if (messageResult.data && prompt.length > 0) {
-      const { id, messages } = messageResult.data;
+    if (existingConversation && prompt.length > 0) {
+      const { id, messages } = existingConversation;
       generateChatCompletion({ id, messages });
     }
-  }, [messageResult]);
+  }, [existingConversation]);
 
   function generateChatCompletion({ id, messages }: {
     id: string;

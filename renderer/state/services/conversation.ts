@@ -32,6 +32,12 @@ export const conversationApi = createApi({
         body: { id, title },
       }),
     }),
+    deleteConversation: builder.mutation<boolean, Pick<Conversation, "id">>({
+      query: ({ id }: Pick<Conversation, "id">) => ({
+        url: `/conversations/${id}`,
+        method: "DELETE",
+      }),
+    }),
   }),
 });
 
@@ -41,4 +47,5 @@ export const {
   useCreateConversationMutation,
   useUpdateConversationMessagesMutation,
   useUpdateConversationTitleMutation,
+  useDeleteConversationMutation,
 } = conversationApi;

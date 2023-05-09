@@ -1,11 +1,12 @@
 import React from "react";
 import Link from "next/link";
 import { BsChatLeft } from "react-icons/bs";
-import { FiPlus, FiEdit3 } from "react-icons/fi";
+import { FiPlus, FiEdit3, FiTrash2 } from "react-icons/fi";
 import { ImCheckmark, ImCross } from "react-icons/im";
-import { useGetAllConversationsQuery, useUpdateConversationTitleMutation } from "../state/services/conversation";
+import { useDeleteConversationMutation, useGetAllConversationsQuery, useUpdateConversationTitleMutation } from "../state/services/conversation";
 import { useSelector } from "react-redux";
 import { selectConversations } from "../state/chat/chatSlice";
+import { useRouter } from "next/router";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
   const { error, isLoading } = useGetAllConversationsQuery();
@@ -76,6 +77,11 @@ export function ChatItem({
   const [newTitle, setNewTitle] = React.useState(title);
   const [updateTitle, _] = useUpdateConversationTitleMutation();
 
+  const [isDeleting, setDeleting] = React.useState(false);
+  const [deleteConversation, __] = useDeleteConversationMutation();
+
+  const router = useRouter();
+
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(e.target.value);
   };
@@ -86,6 +92,14 @@ export function ChatItem({
     cancelEdit();
   };
 
+  const startDelete = () => setDeleting(true);
+  const cancelDelete = () => setDeleting(false);
+
+  const confirmDelete = async () => {
+    await deleteConversation({ id });
+    router.push("/home");
+  };
+
   return (
     <Link href={`/conversation/${id}`}>
       <div
@@ -94,7 +108,11 @@ export function ChatItem({
           hover:cursor-pointer hover:bg-gray-600
           ${isSelected ? "bg-gray-600" : ""}
       `}>
-        <BsChatLeft className="text-gray-300 w-5 h-5 shrink-0" />
+        {isDeleting ?
+          <FiTrash2 className="w-5 h-5 text-gray-300 shrink-0"/>
+        :
+          <BsChatLeft className="w-5 h-5 text-gray-300 shrink-0" />
+        }
         <div className="flex w-full gap-2 overflow-hidden">
           {isSelected && isEditable ? (
             <form onSubmit={handleTitleChangeSubmit}>
@@ -109,26 +127,40 @@ export function ChatItem({
               />
             </form>
           ) : (
-            <span className="truncate">{title}</span>
+            <span className="truncate">
+              {isDeleting ? `Delete '${title}'?` : title}
+            </span>
           )}
           {isSelected ? (
             <div className="grow grid self-center place-content-end">
-              {isEditable ? (
+              {isEditable || isDeleting ? (
                 <div className="flex gap-2">
                   <ImCheckmark
                     className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
-                    onClick={handleTitleChangeSubmit}
+                    onClick={
+                      isEditable ? handleTitleChangeSubmit :
+                      isDeleting ? confirmDelete : null
+                    }
                   />
                   <ImCross
                     className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
-                    onClick={() => cancelEdit()}
+                    onClick={() => {
+                      if (isEditable) cancelEdit();
+                      if (isDeleting) cancelDelete();
+                    }}
                   />
                 </div>
               ) : (
-                <FiEdit3
-                  className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
-                  onClick={() => startEdit(id)}
-                />
+                <div className="flex gap-2">
+                  <FiEdit3
+                    className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
+                    onClick={() => startEdit(id)}
+                  />
+                  <FiTrash2
+                    className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
+                    onClick={() => startDelete()}
+                  />
+                </div>
               )}
             </div>
           ) : null}

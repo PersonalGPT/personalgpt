@@ -6,11 +6,24 @@ import { ImCheckmark, ImCross } from "react-icons/im";
 import { useGetAllConversationsQuery } from "../state/services/conversation";
 import { useSelector } from "react-redux";
 import { selectConversations } from "../state/chat/chatSlice";
-import { Conversation } from "../models/conversation";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
   const { error, isLoading } = useGetAllConversationsQuery();
   const conversations = useSelector(selectConversations);
+  const [idConvoToEdit, setIdConvoToEdit] = React.useState<string>(null);
+
+  const startTitleEdit = (convoId: string) => {
+    setIdConvoToEdit(convoId);
+  };
+
+  const cancelTitleEdit = () => {
+    setIdConvoToEdit(null);
+  };
+
+  React.useEffect(() => {
+    if (idConvoToEdit !== selectedId)
+      setIdConvoToEdit(null);
+  }, [selectedId]);
 
   return (
     <nav className="shrink-0 h-full w-72 bg-gray-700 px-3 py-4 overflow-y-auto">
@@ -31,8 +44,12 @@ export default function Sidebar({ selectedId }: { selectedId?: string }) {
           Object.values(conversations).sort((a, b) => b.createdAt - a.createdAt).map((conversation, index) => (
             <ChatItem
               key={index}
-              conversation={conversation}
-              selectedId={selectedId}
+              id={conversation.id}
+              title={conversation.title}
+              isSelected={conversation.id === selectedId}
+              isEditable={conversation.id === idConvoToEdit}
+              startEdit={startTitleEdit}
+              cancelEdit={cancelTitleEdit}
             />
           ))
         ) : null}
@@ -42,17 +59,33 @@ export default function Sidebar({ selectedId }: { selectedId?: string }) {
 }
 
 export function ChatItem({
-  conversation,
-  selectedId
+  id,
+  title,
+  isSelected,
+  isEditable,
+  startEdit,
+  cancelEdit,
 }: {
-  conversation: Conversation,
-  selectedId: string;
+  id: string;
+  title: string;
+  isSelected: boolean;
+  isEditable: boolean;
+  startEdit: (convoId: string) => void;
+  cancelEdit: () => void;
 }) {
-  const isSelected = conversation.id === selectedId;
-  const [isEditingTitle, setEditingTitle] = React.useState(false);
+  const [newTitle, setNewTitle] = React.useState(title);
+
+  const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewTitle(e.target.value);
+  };
+
+  const handleTitleChangeSubmit = (e: React.SyntheticEvent) => {
+    e.preventDefault();
+    console.log(newTitle);
+  };
 
   return (
-    <Link href={`/conversation/${conversation.id}`}>
+    <Link href={`/conversation/${id}`}>
       <div
         className={`
           flex gap-3 place-items-center w-full p-2 h-12 rounded-md
@@ -61,11 +94,12 @@ export function ChatItem({
       `}>
         <BsChatLeft className="text-gray-300 w-5 h-5 shrink-0" />
         <div className="flex w-full gap-2 overflow-hidden">
-          {isSelected && isEditingTitle ? (
-            <form>
+          {isSelected && isEditable ? (
+            <form onSubmit={handleTitleChangeSubmit}>
               <input
                 type="text"
-                defaultValue={conversation.title}
+                defaultValue={title}
+                onChange={handleTitleChange}
                 className="
                   bg-gray-600 border border-gray-400 rounded w-full
                   focus-within:outline-none focus-within:border-gray-300
@@ -73,25 +107,25 @@ export function ChatItem({
               />
             </form>
           ) : (
-            <span className="truncate">{conversation.title}</span>
+            <span className="truncate">{title}</span>
           )}
-          {conversation.id === selectedId ? (
+          {isSelected ? (
             <div className="grow grid self-center place-content-end">
-              {isEditingTitle ? (
+              {isEditable ? (
                 <div className="flex gap-2">
                   <ImCheckmark
                     className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
-                    onClick={() => setEditingTitle(false)}
+                    onClick={handleTitleChangeSubmit}
                   />
                   <ImCross
                     className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
-                    onClick={() => setEditingTitle(false)}
+                    onClick={() => cancelEdit()}
                   />
                 </div>
               ) : (
                 <FiEdit3
                   className="w-5 h-5 shrink-0 text-gray-400 hover:text-white"
-                  onClick={() => setEditingTitle(true)}
+                  onClick={() => startEdit(id)}
                 />
               )}
             </div>

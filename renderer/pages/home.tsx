@@ -5,11 +5,20 @@ import ChatInput from '../components/ChatInput';
 import { useCreateConversationMutation } from '../state/services/conversation';
 import ChatMessages from '../components/ChatMessages';
 import StreamDataRenderer from '../components/StreamDataRenderer';
+import { useSelector } from 'react-redux';
+import { selectConversationById, selectCurrentConversationId, setCurrentConversationId } from '../state/chat/chatSlice';
+import { useRouter } from 'next/router';
+import { useAppDispatch } from '../state/hooks';
 
 export default function Home() {
-  const [_, convoResult] = useCreateConversationMutation({
-    fixedCacheKey: "shared-convoResult",
-  });
+  const currentConversationId = useSelector(selectCurrentConversationId);
+  const conversation = useSelector(selectConversationById(currentConversationId));
+  const router = useRouter();
+  const dispatch = useAppDispatch();
+
+  React.useEffect(() => {
+    dispatch(setCurrentConversationId(null));
+  }, [router.query])
 
   return (
     <React.Fragment>
@@ -17,10 +26,10 @@ export default function Home() {
         <title>Home - BetterGPT UI</title>
       </Head>
       <main className="w-screen h-screen flex overflow-x-hidden">
-        <Sidebar />
+        <Sidebar selectedId={currentConversationId} />
         <div className="grow flex flex-col w-full relative overflow-y-auto">
-          {convoResult.data ? (
-            <ChatMessages conversationId={convoResult.data?.id} />
+          {conversation ? (
+            <ChatMessages conversationId={conversation.id} />
           ) : (
             <div className="grow grid place-items-center">
               <div className="text-center grid gap-6 max-w-sm">

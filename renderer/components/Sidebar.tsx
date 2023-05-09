@@ -3,7 +3,7 @@ import Link from "next/link";
 import { BsChatLeft } from "react-icons/bs";
 import { FiPlus, FiEdit3 } from "react-icons/fi";
 import { ImCheckmark, ImCross } from "react-icons/im";
-import { useGetAllConversationsQuery } from "../state/services/conversation";
+import { useGetAllConversationsQuery, useUpdateConversationTitleMutation } from "../state/services/conversation";
 import { useSelector } from "react-redux";
 import { selectConversations } from "../state/chat/chatSlice";
 
@@ -74,14 +74,16 @@ export function ChatItem({
   cancelEdit: () => void;
 }) {
   const [newTitle, setNewTitle] = React.useState(title);
+  const [updateTitle, _] = useUpdateConversationTitleMutation();
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(e.target.value);
   };
 
-  const handleTitleChangeSubmit = (e: React.SyntheticEvent) => {
+  const handleTitleChangeSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    console.log(newTitle);
+    await updateTitle({ id, title: newTitle });
+    cancelEdit();
   };
 
   return (

@@ -2,7 +2,6 @@ import React from 'react';
 import Head from 'next/head';
 import Sidebar from '../components/Sidebar';
 import ChatInput from '../components/ChatInput';
-import { useCreateConversationMutation } from '../state/services/conversation';
 import ChatMessages from '../components/ChatMessages';
 import StreamDataRenderer from '../components/StreamDataRenderer';
 import { useSelector } from 'react-redux';

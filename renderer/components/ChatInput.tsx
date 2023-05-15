@@ -1,10 +1,11 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { selectConversationById, selectCurrentConversationId, selectIsChatLoading } from "../state/chat/chatSlice";
+import { selectIsChatLoading } from "../state/chat/chatSlice";
 import { useAppDispatch } from "../state/hooks";
 import { createChatCompletion } from "../state/chat/thunks/createChatCompletionThunk";
-import { useCreateConversationMutation, useUpdateConversationMessagesMutation } from "../state/services/conversation";
+import { useUpdateConversationMessagesMutation } from "../state/services/conversation";
 import { ChatCompletionMessage, ChatCompletionRole } from "../models/chat";
+import { createConversation, selectConversationById, selectCurrentConversationId } from "../state/conversation/conversationSlice";
 
 export default function ChatInput() {
   const isLoading = useSelector(selectIsChatLoading);
@@ -16,7 +17,7 @@ export default function ChatInput() {
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const abortRef = React.useRef(null);
 
-  const [createConversation, { data: newConversation }] = useCreateConversationMutation();
+  // const [createConversation, { data: newConversation }] = useCreateConversationMutation();
   const [updateConversationMessages, { data: existingConversation }] = useUpdateConversationMessagesMutation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -24,7 +25,7 @@ export default function ChatInput() {
     setInputDisabled(true);
 
     if (!currentConversationId) {
-      await createConversation({ prompt });
+      dispatch(createConversation({ prompt }));
     }
     else {
       const messages = currentConversation.messages;
@@ -41,18 +42,11 @@ export default function ChatInput() {
   };
 
   React.useEffect(() => {
-    if (newConversation && prompt.length > 0) {
-      const { id, messages } = newConversation;
+    if (currentConversation && prompt.length > 0) {
+      const { id, messages } = currentConversation;
       generateChatCompletion({ id, messages });
     }
-  }, [newConversation]);
-
-  React.useEffect(() => {
-    if (existingConversation && prompt.length > 0) {
-      const { id, messages } = existingConversation;
-      generateChatCompletion({ id, messages });
-    }
-  }, [existingConversation]);
+  }, [currentConversation]);
 
   function generateChatCompletion({ id, messages }: {
     id: string;

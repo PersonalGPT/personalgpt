@@ -1,10 +1,9 @@
 import React from "react";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../state/hooks";
-import { createChatCompletion } from "../state/chat/thunks/createChatCompletionThunk";
 import { ChatCompletionMessage, ChatCompletionRole } from "../models/chat";
 import { selectConversationById, selectCurrentConversationId, selectIsChatLoading } from "../state/conversation/conversationSlice";
-import { patchConversationMessages, postConversation } from "../state/conversation/thunks";
+import { patchConversationMessages, postChatCompletion, postConversation } from "../state/conversation/thunks";
 
 export default function ChatInput() {
   const isLoading = useSelector(selectIsChatLoading);
@@ -48,7 +47,7 @@ export default function ChatInput() {
     id: string;
     messages: ChatCompletionMessage[];
   }) {
-    const promise = dispatch(createChatCompletion({ id, messages }));
+    const promise = dispatch(postChatCompletion({ id, messages }));
     abortRef.current = promise.abort;
     setInputDisabled(false);
     setPrompt("");

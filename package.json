@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "bettergpt-ui",
-  "description": "A feature-rich alternative to ChatGPT's UI, with better UX",
+  "name": "personalgpt",
+  "description": "A feature-rich alternative to ChatGPT and TypingMind",
   "version": "0.1.0",
   "author": "Ricky Chon <rickychon99@gmail.com>",
   "main": "app/background.js",

@@ -1,6 +1,8 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
 import { Conversation, ConversationPreview } from "../../models/conversation";
+import { postChatCompletion } from "./thunks";
+import { ChatCompletionMessage } from "../../models/chat";
 
 export interface ConversationState {
   isLoading: boolean;
@@ -53,6 +55,37 @@ export const conversationSlice = createSlice({
 
       delete state.conversations[id];
     },
+    addChatMessage: (state, action: PayloadAction<{
+      id: string;
+      messages: ChatCompletionMessage | ChatCompletionMessage[];
+    }>) => {
+      const { id, messages } = action.payload;
+      const convo = state.conversations[id];
+      let msgs = convo.messages;
+
+      msgs = msgs.concat(messages);
+      state.conversations[id] = {
+        ...convo,
+        messages: msgs,
+      };
+    },
+    appendToLastMessage: (state, action: PayloadAction<{
+      id: string;
+      contentToAppend: string;
+    }>) => {
+      const { id, contentToAppend } = action.payload;
+
+      const convo: Conversation = state.conversations[id];
+      const messages = convo.messages;
+      const last = messages[messages.length - 1];
+
+      messages[messages.length - 1] = {
+        ...last,
+        content: last.content + contentToAppend,
+      };
+
+      state.conversations[id] = convo;
+    },
     setCurrentConversationId: (state, action: PayloadAction<string>) => {
       state.currentConversationId = action.payload;
     },
@@ -60,6 +93,20 @@ export const conversationSlice = createSlice({
       state.streamData = action.payload;
     },
   },
+  extraReducers: (builder) => {
+    builder
+      .addCase(postChatCompletion.pending, (state) => {
+        state.isLoading = true;
+      })
+      .addCase(postChatCompletion.fulfilled, (state) => {
+        state.isLoading = false;
+        state.streamData = "";
+      })
+      .addCase(postChatCompletion.rejected, (state) => {
+        state.isLoading = false;
+        state.streamData = "";
+      });
+  }
 });
 
 export const {
@@ -68,6 +115,8 @@ export const {
   loadFullConversation,
   updateConversation,
   removeConversation,
+  addChatMessage,
+  appendToLastMessage,
   setCurrentConversationId,
   setStreamData,
 } = conversationSlice.actions;

@@ -1,8 +1,7 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { appendToLastMessage } from "../state/chat/chatSlice";
 import { useAppDispatch } from "../state/hooks";
-import { selectCurrentConversationId, selectStreamData } from "../state/conversation/conversationSlice";
+import { appendToLastMessage, selectCurrentConversationId, selectStreamData } from "../state/conversation/conversationSlice";
 
 export default function StreamDataRenderer() {
   const streamData = useSelector(selectStreamData);

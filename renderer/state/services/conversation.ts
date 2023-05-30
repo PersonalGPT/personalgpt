@@ -8,13 +8,6 @@ export const conversationApi = createApi({
     getConversationById: builder.query<Conversation, string>({
       query: (id: string) => `/conversations/${id}`,
     }),
-    createConversation: builder.mutation<Conversation, { prompt: string }>({
-      query: ({ prompt }: { prompt: string }) => ({
-        url: "/conversations",
-        method: "POST",
-        body: { prompt },
-      }),
-    }),
     updateConversationMessages: builder.mutation<Conversation, Pick<Conversation, "id" | "messages">>({
       query: ({ id, messages }: Pick<Conversation, "id" | "messages">) => ({
         url: "/conversations",
@@ -40,7 +33,6 @@ export const conversationApi = createApi({
 
 export const {
   useGetConversationByIdQuery,
-  useCreateConversationMutation,
   useUpdateConversationMessagesMutation,
   useUpdateConversationTitleMutation,
   useDeleteConversationMutation,

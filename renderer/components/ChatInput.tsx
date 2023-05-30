@@ -5,7 +5,8 @@ import { useAppDispatch } from "../state/hooks";
 import { createChatCompletion } from "../state/chat/thunks/createChatCompletionThunk";
 import { useUpdateConversationMessagesMutation } from "../state/services/conversation";
 import { ChatCompletionMessage, ChatCompletionRole } from "../models/chat";
-import { createConversation, selectConversationById, selectCurrentConversationId } from "../state/conversation/conversationSlice";
+import { selectConversationById, selectCurrentConversationId } from "../state/conversation/conversationSlice";
+import { postConversation } from "../state/conversation/thunks/postConversationThunk";
 
 export default function ChatInput() {
   const isLoading = useSelector(selectIsChatLoading);
@@ -17,7 +18,6 @@ export default function ChatInput() {
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const abortRef = React.useRef(null);
 
-  // const [createConversation, { data: newConversation }] = useCreateConversationMutation();
   const [updateConversationMessages, { data: existingConversation }] = useUpdateConversationMessagesMutation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -25,7 +25,7 @@ export default function ChatInput() {
     setInputDisabled(true);
 
     if (!currentConversationId) {
-      dispatch(createConversation({ prompt }));
+      dispatch(postConversation({ prompt }));
     }
     else {
       const messages = currentConversation.messages;

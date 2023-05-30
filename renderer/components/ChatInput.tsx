@@ -5,7 +5,7 @@ import { createChatCompletion } from "../state/chat/thunks/createChatCompletionT
 import { useUpdateConversationMessagesMutation } from "../state/services/conversation";
 import { ChatCompletionMessage, ChatCompletionRole } from "../models/chat";
 import { selectConversationById, selectCurrentConversationId, selectIsChatLoading } from "../state/conversation/conversationSlice";
-import { postConversation } from "../state/conversation/thunks/postConversationThunk";
+import { postConversation } from "../state/conversation/thunks/";
 
 export default function ChatInput() {
   const isLoading = useSelector(selectIsChatLoading);

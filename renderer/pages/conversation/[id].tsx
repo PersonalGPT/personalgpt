@@ -7,7 +7,7 @@ import ChatMessages from "../../components/ChatMessages";
 import StreamDataRenderer from "../../components/StreamDataRenderer";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../../state/hooks";
-import { fetchConversationById } from "../../state/conversation/thunks/fetchConversationByIdThunk";
+import { fetchConversationById } from "../../state/conversation/thunks";
 import { selectConversationById } from "../../state/conversation/conversationSlice";
 
 export default function Conversation() {

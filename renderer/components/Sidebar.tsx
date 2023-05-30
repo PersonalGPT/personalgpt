@@ -8,8 +8,7 @@ import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { useAppDispatch } from "../state/hooks";
 import { selectConversations } from "../state/conversation/conversationSlice";
-import { fetchAllConversations } from "../state/conversation/thunks/fetchAllConversationsThunk";
-import { patchConversationTitle } from "../state/conversation/thunks/patchConversationTitleThunk";
+import { fetchAllConversations, patchConversationTitle } from "../state/conversation/thunks";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
   const conversations = useSelector(selectConversations);

@@ -3,12 +3,11 @@ import Link from "next/link";
 import { BsChatLeft } from "react-icons/bs";
 import { FiPlus, FiEdit3, FiTrash2 } from "react-icons/fi";
 import { ImCheckmark, ImCross } from "react-icons/im";
-import { useDeleteConversationMutation } from "../state/services/conversation";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { useAppDispatch } from "../state/hooks";
 import { selectConversations } from "../state/conversation/conversationSlice";
-import { fetchAllConversations, patchConversationTitle } from "../state/conversation/thunks";
+import { deleteConversation, fetchAllConversations, patchConversationTitle } from "../state/conversation/thunks";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
   const conversations = useSelector(selectConversations);
@@ -77,9 +76,7 @@ export function ChatItem({
   cancelEdit: () => void;
 }) {
   const [newTitle, setNewTitle] = React.useState(title);
-
   const [isDeleting, setDeleting] = React.useState(false);
-  const [deleteConversation, __] = useDeleteConversationMutation();
 
   const router = useRouter();
   const dispatch = useAppDispatch();
@@ -90,7 +87,7 @@ export function ChatItem({
 
   const handleTitleChangeSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    await dispatch(patchConversationTitle({ id, title: newTitle }));
+    dispatch(patchConversationTitle({ id, title: newTitle }));
     cancelEdit();
   };
 
@@ -98,7 +95,7 @@ export function ChatItem({
   const cancelDelete = () => setDeleting(false);
 
   const confirmDelete = async () => {
-    await deleteConversation({ id });
+    dispatch(deleteConversation(id));
     router.push("/home");
   };
 

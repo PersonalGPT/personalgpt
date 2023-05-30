@@ -82,15 +82,6 @@ export const chatSlice = createSlice({
         state.conversations[payload.id] = { ...payload };
       }
     );
-
-    builder.addMatcher(
-      conversationApi.endpoints.deleteConversation.matchFulfilled,
-      (state, { meta }) => {
-        const { id } = meta.arg.originalArgs;
-
-        delete state.conversations[id];
-      }
-    );
   }
 });
 

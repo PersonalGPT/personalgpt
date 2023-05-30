@@ -48,6 +48,11 @@ export const conversationSlice = createSlice({
 
       state.conversations[conversation.id] = conversation;
     },
+    removeConversation: (state, action: PayloadAction<string>) => {
+      const id = action.payload;
+
+      delete state.conversations[id];
+    },
     setCurrentConversationId: (state, action: PayloadAction<string>) => {
       state.currentConversationId = action.payload;
     },
@@ -62,6 +67,7 @@ export const {
   loadConversationPreviews,
   loadFullConversation,
   updateConversation,
+  removeConversation,
   setCurrentConversationId,
   setStreamData,
 } = conversationSlice.actions;

@@ -1,13 +1,10 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
-import { Conversation, ConversationPreview } from "../../models/conversation";
+import { Conversation } from "../../models/conversation";
 
 export const conversationApi = createApi({
   reducerPath: "conversationApi",
   baseQuery: fetchBaseQuery({ baseUrl: `${process.env.BETTERGPT_SERVER_URL}/api/v1` }),
   endpoints: (builder) => ({
-    getAllConversations: builder.query<ConversationPreview[], void>({
-      query: () => "/conversations",
-    }),
     getConversationById: builder.query<Conversation, string>({
       query: (id: string) => `/conversations/${id}`,
     }),
@@ -42,7 +39,6 @@ export const conversationApi = createApi({
 });
 
 export const {
-  useGetAllConversationsQuery,
   useGetConversationByIdQuery,
   useCreateConversationMutation,
   useUpdateConversationMessagesMutation,

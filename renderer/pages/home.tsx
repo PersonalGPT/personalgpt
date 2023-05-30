@@ -32,8 +32,8 @@ export default function Home() {
           ) : (
             <div className="grow grid place-items-center">
               <div className="text-center grid gap-6 max-w-sm">
-                <h1 className="text-4xl font-bold">BetterGPT</h1>
-                <p>A feature-rich alternative to ChatGPT, with a better interface and  user experience</p>
+                <h1 className="text-4xl font-bold">PersonalGPT</h1>
+                <p>A feature-rich alternative to ChatGPT and TypingMind</p>
               </div>
             </div>
           )}

@@ -1,6 +1,6 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import { Conversation, createNewConversation } from "../../models/conversation";
+import { Conversation, ConversationPreview, createNewConversation } from "../../models/conversation";
 import { ChatCompletionRole } from "../../models/chat";
 import { idb } from "../database";
 
@@ -41,11 +41,23 @@ export const conversationSlice = createSlice({
       state.conversations[conversation.id] = conversation;
       state.currentConversationId = conversation.id;
     },
-  }
+    loadConversationPreviews: (state, action: PayloadAction<ConversationPreview[]>) => {
+      const previews = action.payload;
+
+      previews.forEach(preview => {
+        state.conversations[preview.id] = {
+          ...preview,
+          messages: [],
+        };
+      });
+      state.currentConversationId = null;
+    },
+  },
 });
 
 export const {
   createConversation,
+  loadConversationPreviews,
 } = conversationSlice.actions;
 
 export const selectConversations = (state: RootState) => state.conversation.conversations;

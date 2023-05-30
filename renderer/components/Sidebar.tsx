@@ -3,15 +3,21 @@ import Link from "next/link";
 import { BsChatLeft } from "react-icons/bs";
 import { FiPlus, FiEdit3, FiTrash2 } from "react-icons/fi";
 import { ImCheckmark, ImCross } from "react-icons/im";
-import { useDeleteConversationMutation, useGetAllConversationsQuery, useUpdateConversationTitleMutation } from "../state/services/conversation";
+import { useDeleteConversationMutation, useUpdateConversationTitleMutation } from "../state/services/conversation";
 import { useSelector } from "react-redux";
-import { selectConversations } from "../state/chat/chatSlice";
 import { useRouter } from "next/router";
+import { useAppDispatch } from "../state/hooks";
+import { selectConversations } from "../state/conversation/conversationSlice";
+import { fetchAllConversations } from "../state/conversation/thunks/fetchAllConversationsThunk";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
-  const { error, isLoading } = useGetAllConversationsQuery();
   const conversations = useSelector(selectConversations);
   const [idConvoToEdit, setIdConvoToEdit] = React.useState<string>(null);
+  const dispatch = useAppDispatch();
+
+  React.useEffect(() => {
+    dispatch(fetchAllConversations());
+  }, []);
 
   const startTitleEdit = (convoId: string) => {
     setIdConvoToEdit(convoId);
@@ -37,11 +43,7 @@ export default function Sidebar({ selectedId }: { selectedId?: string }) {
         </span>
       </Link>
       <div className="flex flex-col gap-2 mt-6">
-        {error ? (
-          <p>There was an error.</p>
-        ) : isLoading ? (
-          <p>Loading...</p>
-        ) : conversations ? (
+        {conversations ? (
           Object.values(conversations).sort((a, b) => b.createdAt - a.createdAt).map((conversation, index) => (
             <ChatItem
               key={index}
@@ -53,7 +55,7 @@ export default function Sidebar({ selectedId }: { selectedId?: string }) {
               cancelEdit={cancelTitleEdit}
             />
           ))
-        ) : null}
+        ) : <p>Loading...</p>}
       </div>
     </nav>
   );

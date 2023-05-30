@@ -1,6 +1,7 @@
 import { createAsyncThunk } from "@reduxjs/toolkit";
 import { ChatCompletionMessage, ChatCompletionRole } from "../../../models/chat";
-import { addChatMessage, setStreamData } from "../chatSlice";
+import { addChatMessage } from "../chatSlice";
+import { setStreamData } from "../../conversation/conversationSlice";
 
 export const createChatCompletion = createAsyncThunk(
   "chat/createCompletion",

@@ -2,10 +2,9 @@ import React from "react";
 import { useSelector } from "react-redux";
 import { useAppDispatch } from "../state/hooks";
 import { createChatCompletion } from "../state/chat/thunks/createChatCompletionThunk";
-import { useUpdateConversationMessagesMutation } from "../state/services/conversation";
 import { ChatCompletionMessage, ChatCompletionRole } from "../models/chat";
 import { selectConversationById, selectCurrentConversationId, selectIsChatLoading } from "../state/conversation/conversationSlice";
-import { postConversation } from "../state/conversation/thunks/";
+import { patchConversationMessages, postConversation } from "../state/conversation/thunks";
 
 export default function ChatInput() {
   const isLoading = useSelector(selectIsChatLoading);
@@ -16,8 +15,6 @@ export default function ChatInput() {
   const [prompt, setPrompt] = React.useState("");
   const [isInputDisabled, setInputDisabled] = React.useState(false);
   const abortRef = React.useRef(null);
-
-  const [updateConversationMessages, { data: existingConversation }] = useUpdateConversationMessagesMutation();
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -33,10 +30,10 @@ export default function ChatInput() {
         { role: ChatCompletionRole.USER, content: prompt },
       ];
 
-      await updateConversationMessages({
+      dispatch(patchConversationMessages({
         id: currentConversationId,
         messages: newMessages,
-      })
+      }));
     }
   };
 

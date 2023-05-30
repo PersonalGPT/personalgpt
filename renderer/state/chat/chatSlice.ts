@@ -1,10 +1,8 @@
 import { createSlice } from "@reduxjs/toolkit";
 import type { PayloadAction } from "@reduxjs/toolkit";
 import { ChatCompletionMessage } from "../../models/chat";
-import { RootState } from "../store";
 import { createChatCompletion } from "./thunks/createChatCompletionThunk";
 import { Conversation } from "../../models/conversation";
-import { conversationApi } from "../services/conversation";
 
 export interface ChatState {
   isLoading: boolean;
@@ -55,12 +53,6 @@ export const chatSlice = createSlice({
 
       state.conversations[id] = convo;
     },
-    setCurrentConversationId: (state, action: PayloadAction<string>) => {
-      state.currentConversationId = action.payload;
-    },
-    setStreamData: (state, action: PayloadAction<string>) => {
-      state.streamData = action.payload;
-    },
   },
   extraReducers: (builder) => {
     builder
@@ -75,28 +67,12 @@ export const chatSlice = createSlice({
         state.isLoading = false;
         state.streamData = "";
       });
-
-    builder.addMatcher(
-      conversationApi.endpoints.updateConversationMessages.matchFulfilled,
-      (state, { payload }) => {
-        state.conversations[payload.id] = { ...payload };
-      }
-    );
   }
 });
 
 export const {
   addChatMessage,
   appendToLastMessage,
-  setCurrentConversationId,
-  setStreamData,
 } = chatSlice.actions;
-
-export const selectIsChatLoading = (state: RootState) => state.chat.isLoading;
-export const selectConversations = (state: RootState) => state.chat.conversations;
-export const selectConversationById = (id: string) =>
-  (state: RootState): Conversation => state.chat.conversations[id];
-export const selectStreamData = (state: RootState) => state.chat.streamData;
-export const selectCurrentConversationId = (state: RootState) => state.chat.currentConversationId;
 
 export default chatSlice.reducer;

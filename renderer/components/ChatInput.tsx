@@ -1,11 +1,10 @@
 import React from "react";
 import { useSelector } from "react-redux";
-import { selectIsChatLoading } from "../state/chat/chatSlice";
 import { useAppDispatch } from "../state/hooks";
 import { createChatCompletion } from "../state/chat/thunks/createChatCompletionThunk";
 import { useUpdateConversationMessagesMutation } from "../state/services/conversation";
 import { ChatCompletionMessage, ChatCompletionRole } from "../models/chat";
-import { selectConversationById, selectCurrentConversationId } from "../state/conversation/conversationSlice";
+import { selectConversationById, selectCurrentConversationId, selectIsChatLoading } from "../state/conversation/conversationSlice";
 import { postConversation } from "../state/conversation/thunks/postConversationThunk";
 
 export default function ChatInput() {

@@ -5,9 +5,9 @@ import ChatInput from '../components/ChatInput';
 import ChatMessages from '../components/ChatMessages';
 import StreamDataRenderer from '../components/StreamDataRenderer';
 import { useSelector } from 'react-redux';
-import { selectConversationById, selectCurrentConversationId, setCurrentConversationId } from '../state/chat/chatSlice';
 import { useRouter } from 'next/router';
 import { useAppDispatch } from '../state/hooks';
+import { selectConversationById, selectCurrentConversationId, setCurrentConversationId } from '../state/conversation/conversationSlice';
 
 export default function Home() {
   const currentConversationId = useSelector(selectCurrentConversationId);

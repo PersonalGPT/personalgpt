@@ -12,13 +12,6 @@ export const conversationApi = createApi({
         body: { id, messages },
       }),
     }),
-    updateConversationTitle: builder.mutation<Conversation, Pick<Conversation, "id" | "title">>({
-      query: ({ id, title }: Pick<Conversation, "id" | "title">) => ({
-        url: "/conversations",
-        method: "PATCH",
-        body: { id, title },
-      }),
-    }),
     deleteConversation: builder.mutation<boolean, Pick<Conversation, "id">>({
       query: ({ id }: Pick<Conversation, "id">) => ({
         url: `/conversations/${id}`,
@@ -30,6 +23,5 @@ export const conversationApi = createApi({
 
 export const {
   useUpdateConversationMessagesMutation,
-  useUpdateConversationTitleMutation,
   useDeleteConversationMutation,
 } = conversationApi;

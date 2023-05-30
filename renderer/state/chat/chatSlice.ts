@@ -84,13 +84,6 @@ export const chatSlice = createSlice({
     );
 
     builder.addMatcher(
-      conversationApi.endpoints.updateConversationTitle.matchFulfilled,
-      (state, { payload }) => {
-        state.conversations[payload.id] = { ...payload };
-      }
-    );
-
-    builder.addMatcher(
       conversationApi.endpoints.deleteConversation.matchFulfilled,
       (state, { meta }) => {
         const { id } = meta.arg.originalArgs;

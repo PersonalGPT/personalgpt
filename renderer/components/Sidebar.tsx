@@ -3,12 +3,13 @@ import Link from "next/link";
 import { BsChatLeft } from "react-icons/bs";
 import { FiPlus, FiEdit3, FiTrash2 } from "react-icons/fi";
 import { ImCheckmark, ImCross } from "react-icons/im";
-import { useDeleteConversationMutation, useUpdateConversationTitleMutation } from "../state/services/conversation";
+import { useDeleteConversationMutation } from "../state/services/conversation";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { useAppDispatch } from "../state/hooks";
 import { selectConversations } from "../state/conversation/conversationSlice";
 import { fetchAllConversations } from "../state/conversation/thunks/fetchAllConversationsThunk";
+import { patchConversationTitle } from "../state/conversation/thunks/patchConversationTitleThunk";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
   const conversations = useSelector(selectConversations);
@@ -77,12 +78,12 @@ export function ChatItem({
   cancelEdit: () => void;
 }) {
   const [newTitle, setNewTitle] = React.useState(title);
-  const [updateTitle, _] = useUpdateConversationTitleMutation();
 
   const [isDeleting, setDeleting] = React.useState(false);
   const [deleteConversation, __] = useDeleteConversationMutation();
 
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(e.target.value);
@@ -90,7 +91,7 @@ export function ChatItem({
 
   const handleTitleChangeSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    await updateTitle({ id, title: newTitle });
+    await dispatch(patchConversationTitle({ id, title: newTitle }));
     cancelEdit();
   };
 

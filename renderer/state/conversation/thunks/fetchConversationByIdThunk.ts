@@ -13,7 +13,6 @@ export const fetchConversationById = createAsyncThunk(
 
       request.onsuccess = () => {
         console.log(`[fetchById] Conversation with ID ${id} retrieved successfully`);
-        console.log(request.result);
         dispatch(loadFullConversation(request.result));
       };
 

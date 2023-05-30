@@ -77,14 +77,6 @@ export const chatSlice = createSlice({
       });
 
     builder.addMatcher(
-      conversationApi.endpoints.getConversationById.matchFulfilled,
-      (state, { payload }) => {
-        state.conversations[payload.id] = { ...payload };
-        state.currentConversationId = payload.id;
-      }
-    );
-
-    builder.addMatcher(
       conversationApi.endpoints.updateConversationMessages.matchFulfilled,
       (state, { payload }) => {
         state.conversations[payload.id] = { ...payload };

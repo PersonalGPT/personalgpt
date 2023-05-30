@@ -22,7 +22,7 @@ export default function Home() {
   return (
     <React.Fragment>
       <Head>
-        <title>Home - BetterGPT UI</title>
+        <title>Home - PersonalGPT UI</title>
       </Head>
       <main className="w-screen h-screen flex overflow-x-hidden">
         <Sidebar selectedId={currentConversationId} />

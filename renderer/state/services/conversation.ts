@@ -5,9 +5,6 @@ export const conversationApi = createApi({
   reducerPath: "conversationApi",
   baseQuery: fetchBaseQuery({ baseUrl: `${process.env.BETTERGPT_SERVER_URL}/api/v1` }),
   endpoints: (builder) => ({
-    getConversationById: builder.query<Conversation, string>({
-      query: (id: string) => `/conversations/${id}`,
-    }),
     updateConversationMessages: builder.mutation<Conversation, Pick<Conversation, "id" | "messages">>({
       query: ({ id, messages }: Pick<Conversation, "id" | "messages">) => ({
         url: "/conversations",
@@ -32,7 +29,6 @@ export const conversationApi = createApi({
 });
 
 export const {
-  useGetConversationByIdQuery,
   useUpdateConversationMessagesMutation,
   useUpdateConversationTitleMutation,
   useDeleteConversationMutation,

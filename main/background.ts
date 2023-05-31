@@ -2,6 +2,7 @@ import { app } from 'electron';
 import serve from 'electron-serve';
 import { createWindow } from './helpers';
 import * as dotenv from 'dotenv';
+import "reflect-metadata";
 
 const isProd: boolean = process.env.NODE_ENV === 'production';
 

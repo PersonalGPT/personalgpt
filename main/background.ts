@@ -2,7 +2,8 @@ import { app } from 'electron';
 import serve from 'electron-serve';
 import { createWindow } from './helpers';
 import * as dotenv from 'dotenv';
-import "reflect-metadata";
+import "reflect-metadata"
+import { initDataSource } from '../shared/database/database';
 
 const isProd: boolean = process.env.NODE_ENV === 'production';
 
@@ -20,6 +21,8 @@ if (isProd) {
     width: 1000,
     height: 600,
   });
+
+  initDataSource();
 
   if (isProd) {
     await mainWindow.loadURL('app://./home.html');

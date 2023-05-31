@@ -3,15 +3,23 @@ import Link from "next/link";
 import { BsChatLeft } from "react-icons/bs";
 import { FiPlus, FiEdit3, FiTrash2 } from "react-icons/fi";
 import { ImCheckmark, ImCross } from "react-icons/im";
-import { useDeleteConversationMutation, useGetAllConversationsQuery, useUpdateConversationTitleMutation } from "../state/services/conversation";
 import { useSelector } from "react-redux";
-import { selectConversations } from "../state/chat/chatSlice";
 import { useRouter } from "next/router";
+import { useAppDispatch } from "../state/hooks";
+import { selectArePreviewsFetched, selectConversations } from "../state/conversation/conversationSlice";
+import { deleteConversation, fetchAllConversations, patchConversationTitle } from "../state/conversation/thunks";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
-  const { error, isLoading } = useGetAllConversationsQuery();
+  const arePreviewsFetched = useSelector(selectArePreviewsFetched);
   const conversations = useSelector(selectConversations);
   const [idConvoToEdit, setIdConvoToEdit] = React.useState<string>(null);
+  const dispatch = useAppDispatch();
+
+  React.useEffect(() => {
+    if (!arePreviewsFetched) {
+      dispatch(fetchAllConversations());
+    }
+  }, []);
 
   const startTitleEdit = (convoId: string) => {
     setIdConvoToEdit(convoId);
@@ -37,11 +45,7 @@ export default function Sidebar({ selectedId }: { selectedId?: string }) {
         </span>
       </Link>
       <div className="flex flex-col gap-2 mt-6">
-        {error ? (
-          <p>There was an error.</p>
-        ) : isLoading ? (
-          <p>Loading...</p>
-        ) : conversations ? (
+        {conversations ? (
           Object.values(conversations).sort((a, b) => b.createdAt - a.createdAt).map((conversation, index) => (
             <ChatItem
               key={index}
@@ -53,7 +57,7 @@ export default function Sidebar({ selectedId }: { selectedId?: string }) {
               cancelEdit={cancelTitleEdit}
             />
           ))
-        ) : null}
+        ) : <p>Loading...</p>}
       </div>
     </nav>
   );
@@ -75,12 +79,10 @@ export function ChatItem({
   cancelEdit: () => void;
 }) {
   const [newTitle, setNewTitle] = React.useState(title);
-  const [updateTitle, _] = useUpdateConversationTitleMutation();
-
   const [isDeleting, setDeleting] = React.useState(false);
-  const [deleteConversation, __] = useDeleteConversationMutation();
 
   const router = useRouter();
+  const dispatch = useAppDispatch();
 
   const handleTitleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setNewTitle(e.target.value);
@@ -88,7 +90,7 @@ export function ChatItem({
 
   const handleTitleChangeSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
-    await updateTitle({ id, title: newTitle });
+    dispatch(patchConversationTitle({ id, title: newTitle }));
     cancelEdit();
   };
 
@@ -96,7 +98,7 @@ export function ChatItem({
   const cancelDelete = () => setDeleting(false);
 
   const confirmDelete = async () => {
-    await deleteConversation({ id });
+    dispatch(deleteConversation(id));
     router.push("/home");
   };
 

@@ -1,7 +1,7 @@
 import React from "react";
 import { ChatCompletionRole } from "../models/chat";
 import { useSelector } from "react-redux";
-import { selectConversationById } from "../state/chat/chatSlice";
+import { selectConversationById } from "../state/conversation/conversationSlice";
 
 export default function ChatMessages({
   conversationId

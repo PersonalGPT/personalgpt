@@ -12,12 +12,12 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.5",
+    "better-sqlite3": "^8.4.0",
     "electron-serve": "^1.1.0",
     "electron-store": "^8.1.0",
     "react-icons": "^4.8.0",
     "react-redux": "^8.0.5",
     "reflect-metadata": "^0.1.13",
-    "sqlite3": "^5.1.6",
     "typeorm": "^0.3.16"
   },
   "devDependencies": {

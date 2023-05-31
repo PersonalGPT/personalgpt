@@ -6,6 +6,7 @@ import { ChatCompletionMessage } from "../../models/chat";
 
 export interface ConversationState {
   isLoading: boolean;
+  arePreviewsFetched: boolean;
   conversations: { [id: string]: Conversation };
   currentConversationId: string;
   streamData: string;
@@ -13,6 +14,7 @@ export interface ConversationState {
 
 const initialState: ConversationState = {
   isLoading: false,
+  arePreviewsFetched: false,
   conversations: {},
   currentConversationId: undefined,
   streamData: "",
@@ -37,6 +39,7 @@ export const conversationSlice = createSlice({
           messages: [],
         };
       });
+      state.arePreviewsFetched = true;
       state.currentConversationId = null;
     },
     loadFullConversation: (state, action: PayloadAction<Conversation>) => {
@@ -122,6 +125,7 @@ export const {
 } = conversationSlice.actions;
 
 export const selectIsChatLoading = (state: RootState) => state.conversation.isLoading;
+export const selectArePreviewsFetched = (state: RootState) => state.conversation.arePreviewsFetched;
 export const selectConversations = (state: RootState) => state.conversation.conversations;
 export const selectConversationById = (id: string) =>
   (state: RootState): Conversation => state.conversation.conversations[id];

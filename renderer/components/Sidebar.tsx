@@ -6,16 +6,19 @@ import { ImCheckmark, ImCross } from "react-icons/im";
 import { useSelector } from "react-redux";
 import { useRouter } from "next/router";
 import { useAppDispatch } from "../state/hooks";
-import { selectConversations } from "../state/conversation/conversationSlice";
+import { selectArePreviewsFetched, selectConversations } from "../state/conversation/conversationSlice";
 import { deleteConversation, fetchAllConversations, patchConversationTitle } from "../state/conversation/thunks";
 
 export default function Sidebar({ selectedId }: { selectedId?: string }) {
+  const arePreviewsFetched = useSelector(selectArePreviewsFetched);
   const conversations = useSelector(selectConversations);
   const [idConvoToEdit, setIdConvoToEdit] = React.useState<string>(null);
   const dispatch = useAppDispatch();
 
   React.useEffect(() => {
-    dispatch(fetchAllConversations());
+    if (!arePreviewsFetched) {
+      dispatch(fetchAllConversations());
+    }
   }, []);
 
   const startTitleEdit = (convoId: string) => {

@@ -38,7 +38,7 @@ export const postChatCompletion = createAsyncThunk(
       .getReader();
 
     let content = "";
-    
+
     // Read stream chunks sequentially, then parse each chunk to readable text
     while (true) {
       if (signal.aborted)
@@ -52,7 +52,7 @@ export const postChatCompletion = createAsyncThunk(
       // Split data chunks delimited by \n\n
       const lines = data.split("\n\n")
         .filter(line => line.length > 0 && !line.includes("[DONE]"));
-      
+
       // Convert chunks to JSON and extract text content
       for (const line of lines) {
         const clean = line.replace("data: ", "");

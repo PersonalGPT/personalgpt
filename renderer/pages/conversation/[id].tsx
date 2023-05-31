@@ -30,7 +30,7 @@ export default function Conversation() {
         <div className="grow flex flex-col w-full relative overflow-y-auto">
           {conversation ? (
             <ChatMessages conversationId={id as string} />
-          ) : null}
+          ) : <p>Loading...</p>}
           <ChatInput />
         </div>
         <StreamDataRenderer />

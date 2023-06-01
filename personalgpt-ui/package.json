@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "personalgpt",
+  "name": "personalgpt-ui",
   "description": "A feature-rich alternative to ChatGPT and TypingMind",
   "version": "0.1.0",
   "author": "Ricky Chon <rickychon99@gmail.com>",

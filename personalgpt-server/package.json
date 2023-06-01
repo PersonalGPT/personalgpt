@@ -1,7 +1,7 @@
 {
   "private": true,
-  "name": "bettergpt-server",
-  "description": "Server for BetterGPT UI, a feature-rich alternative to ChatGPT's UI, with better UX",
+  "name": "personalgpt-server",
+  "description": "Server for PersonalGPT",
   "version": "0.1.0",
   "author": "Ricky Chon <rickychon99@gmail.com",
   "main": "main.js",

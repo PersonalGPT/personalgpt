@@ -1,12 +1,12 @@
 import { PayloadAction, createSlice } from "@reduxjs/toolkit";
 import { RootState } from "../store";
-import { Conversation, ConversationPreview } from "../../models/conversation";
-import { postChatCompletion } from "./thunks";
+import { Conversation } from "../../models/conversation";
+import { createChatCompletion } from "./thunks";
 import { ChatCompletionMessage } from "../../models/chat";
+import { conversationApi } from "../services/conversation";
 
 export interface ConversationState {
   isLoading: boolean;
-  arePreviewsFetched: boolean;
   conversations: { [id: string]: Conversation };
   currentConversationId: string;
   streamData: string;
@@ -14,7 +14,6 @@ export interface ConversationState {
 
 const initialState: ConversationState = {
   isLoading: false,
-  arePreviewsFetched: false,
   conversations: {},
   currentConversationId: undefined,
   streamData: "",
@@ -24,40 +23,6 @@ export const conversationSlice = createSlice({
   name: "conversation",
   initialState,
   reducers: {
-    createConversation: (state, action: PayloadAction<Conversation>) => {
-      const conversation = action.payload;
-
-      state.conversations[conversation.id] = conversation;
-      state.currentConversationId = conversation.id;
-    },
-    loadConversationPreviews: (state, action: PayloadAction<ConversationPreview[]>) => {
-      const previews = action.payload;
-
-      previews.forEach(preview => {
-        state.conversations[preview.id] = {
-          ...preview,
-          messages: [],
-        };
-      });
-      state.arePreviewsFetched = true;
-      state.currentConversationId = null;
-    },
-    loadFullConversation: (state, action: PayloadAction<Conversation>) => {
-      const conversation = action.payload;
-
-      state.conversations[conversation.id] = conversation;
-      state.currentConversationId = conversation.id;
-    },
-    updateConversation: (state, action: PayloadAction<Conversation>) => {
-      const conversation = action.payload;
-
-      state.conversations[conversation.id] = conversation;
-    },
-    removeConversation: (state, action: PayloadAction<string>) => {
-      const id = action.payload;
-
-      delete state.conversations[id];
-    },
     addChatMessage: (state, action: PayloadAction<{
       id: string;
       messages: ChatCompletionMessage | ChatCompletionMessage[];
@@ -98,26 +63,73 @@ export const conversationSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(postChatCompletion.pending, (state) => {
+      .addCase(createChatCompletion.pending, (state) => {
         state.isLoading = true;
       })
-      .addCase(postChatCompletion.fulfilled, (state) => {
+      .addCase(createChatCompletion.fulfilled, (state) => {
         state.isLoading = false;
         state.streamData = "";
       })
-      .addCase(postChatCompletion.rejected, (state) => {
+      .addCase(createChatCompletion.rejected, (state) => {
         state.isLoading = false;
         state.streamData = "";
       });
+
+    builder.addMatcher(
+      conversationApi.endpoints.getAllConversations.matchFulfilled,
+      (state, { payload }) => {
+        payload.forEach(preview => {
+          state.conversations[preview.id] = {
+            ...preview,
+            messages: [],
+          };
+        });
+        state.currentConversationId = null;
+      }
+    );
+
+    builder.addMatcher(
+      conversationApi.endpoints.getConversationById.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+        state.currentConversationId = payload.id;
+      }
+    );
+
+    builder.addMatcher(
+      conversationApi.endpoints.createConversation.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+        state.currentConversationId = payload.id;
+      }
+    );
+
+    builder.addMatcher(
+      conversationApi.endpoints.updateConversationTitle.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+      }
+    );
+
+    builder.addMatcher(
+      conversationApi.endpoints.updateConversationMessages.matchFulfilled,
+      (state, { payload }) => {
+        state.conversations[payload.id] = { ...payload };
+      }
+    );
+
+    builder.addMatcher(
+      conversationApi.endpoints.deleteConversation.matchFulfilled,
+      (state, { meta }) => {
+        const { id } = meta.arg.originalArgs;
+
+        delete state.conversations[id];
+      }
+    );
   }
 });
 
 export const {
-  createConversation,
-  loadConversationPreviews,
-  loadFullConversation,
-  updateConversation,
-  removeConversation,
   addChatMessage,
   appendToLastMessage,
   setCurrentConversationId,
@@ -125,7 +137,6 @@ export const {
 } = conversationSlice.actions;
 
 export const selectIsChatLoading = (state: RootState) => state.conversation.isLoading;
-export const selectArePreviewsFetched = (state: RootState) => state.conversation.arePreviewsFetched;
 export const selectConversations = (state: RootState) => state.conversation.conversations;
 export const selectConversationById = (id: string) =>
   (state: RootState): Conversation => state.conversation.conversations[id];

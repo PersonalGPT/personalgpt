@@ -29,7 +29,7 @@ export default function ChatMessages({
             {convo.content}
           </p>
         </div>
-      )) : <p>Loading...</p>}
+      )) : null}
       <div ref={scrollRef} />
     </div>
   );

@@ -6,19 +6,14 @@ import ChatInput from "../../components/ChatInput";
 import ChatMessages from "../../components/ChatMessages";
 import StreamDataRenderer from "../../components/StreamDataRenderer";
 import { useSelector } from "react-redux";
-import { useAppDispatch } from "../../state/hooks";
-import { fetchConversationById } from "../../state/conversation/thunks";
 import { selectConversationById } from "../../state/conversation/conversationSlice";
+import { useGetConversationByIdQuery } from "../../state/services/conversation";
 
 export default function Conversation() {
   const router = useRouter();
   const { id } = router.query;
+  const { error, isLoading } = useGetConversationByIdQuery(id as string);
   const conversation = useSelector(selectConversationById(id as string));
-  const dispatch = useAppDispatch();
-
-  React.useEffect(() => {
-    dispatch(fetchConversationById(id as string));
-  }, [id]);
 
   return (
     <React.Fragment>
@@ -28,9 +23,13 @@ export default function Conversation() {
       <main className="w-screen h-screen flex overflow-x-hidden">
         <Sidebar selectedId={id as string} />
         <div className="grow flex flex-col w-full relative overflow-y-auto">
-          {conversation ? (
+          {error ? (
+            <p>There was an error...</p>
+          ) : isLoading ? (
+            <p>Loading...</p>
+          ) : conversation ? (
             <ChatMessages conversationId={id as string} />
-          ) : <p>Loading...</p>}
+          ) : null}
           <ChatInput />
         </div>
         <StreamDataRenderer />
